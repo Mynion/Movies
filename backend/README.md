@@ -10,7 +10,7 @@ Backend aplikacji oparty na Spring Boot i PostgreSQL.
 
 1. Zainstaluj i uruchom PostgreSQL.
 2. Utwórz bazę danych.
-3. Wykonaj skrypt SQL z [`database/movies_database_schema.sql`](backend/database/movies_database_schema.sql), aby utworzyć wymagane tabele.
+3. Wykonaj skrypt SQL z [`database/movies_database_schema.sql`](database/movies_database_schema.sql), aby utworzyć wymagane tabele.
 
 ## Konfiguracja połączenia
 
