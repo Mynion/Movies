@@ -28,9 +28,9 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", message));
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, String>> handleIllegalArgument(
-            IllegalArgumentException exception) {
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<Map<String, String>> handleUserAlreadyExists(
+            UserAlreadyExistsException exception) {
 
         return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", exception.getMessage()));

@@ -1,6 +1,7 @@
 package org.mynion.movies.service;
 
 import org.mynion.movies.dto.RegisterRequest;
+import org.mynion.movies.exception.UserAlreadyExistsException;
 import org.mynion.movies.model.User;
 import org.mynion.movies.repo.UserRepo;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,11 +20,12 @@ public class AuthService {
         this.passwordEncoder = passwordEncoder;
     }
     public void register(RegisterRequest request) {
-        if(userRepo.existsByEmail(request.email())){
-            throw new IllegalArgumentException("Email already exists");
+        if (userRepo.existsByUsername(request.username())) {
+            throw new UserAlreadyExistsException("Username is already taken");
         }
-        if(userRepo.existsByUsername(request.username())){
-            throw new IllegalArgumentException("Username already exists");
+
+        if (userRepo.existsByEmail(request.email())) {
+            throw new UserAlreadyExistsException("Email is already registered");
         }
 
         User user = new User();
