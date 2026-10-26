@@ -2,9 +2,11 @@ package org.mynion.movies.controller;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.mynion.movies.dto.LoginRequest;
 import org.mynion.movies.dto.RegisterRequest;
 import org.mynion.movies.service.AuthService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -33,9 +35,15 @@ public class AuthController {
         this.securityContextRepository = securityContextRepository;
     }
 
-    @RequestMapping("/register")
-    public void register(@RequestBody RegisterRequest request){
+    @PostMapping("/register")
+    public ResponseEntity<Map<String, String>> register(
+            @Valid @RequestBody RegisterRequest request) {
+
         authService.register(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(Map.of("message", "User registered successfully"));
     }
 
     @PostMapping("/login")
