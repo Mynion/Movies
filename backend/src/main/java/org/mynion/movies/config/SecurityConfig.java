@@ -25,13 +25,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-//    @Bean
-//    public SecurityFilterChain securityFilterChain(HttpSecurity http) {
-//        http.csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(auth -> auth.requestMatchers("/api/auth/register").permitAll().anyRequest().authenticated());
-//        return http.build();
-//    }
-
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration configuration
