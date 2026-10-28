@@ -82,7 +82,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
-                                "/api/auth/logout"
+                                "/api/auth/logout",
+                                "/api/movies/**"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
