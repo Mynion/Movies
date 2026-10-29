@@ -1,5 +1,7 @@
 package org.mynion.movies.service;
 
+import org.mynion.movies.dto.tmdb.GenreDto;
+import org.mynion.movies.dto.tmdb.GenresDto;
 import org.mynion.movies.dto.tmdb.MovieDetailsDto;
 import org.mynion.movies.dto.tmdb.MovieSearchResponseDto;
 import org.springframework.stereotype.Service;
@@ -52,5 +54,16 @@ public class TmdbService {
                 })
                 .retrieve()
                 .body(MovieSearchResponseDto.class);
+    }
+
+    public GenresDto getGenres(String mediaType) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/genre/{movieType}/list")
+                                .queryParam("language", "pl-PL")
+                                .build(mediaType))
+                .retrieve()
+                .body(GenresDto.class);
     }
 }
