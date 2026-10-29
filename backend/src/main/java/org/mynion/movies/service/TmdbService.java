@@ -1,5 +1,6 @@
 package org.mynion.movies.service;
 
+import org.mynion.movies.dto.MovieSearchResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -12,7 +13,7 @@ public class TmdbService {
         this.tmdbRestClient = tmdbRestClient;
     }
 
-    public String searchMovies(String query) {
+    public MovieSearchResponseDto searchMovies(String query) {
         return tmdbRestClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/search/movie")
@@ -20,6 +21,6 @@ public class TmdbService {
                         .queryParam("language", "pl-PL")
                         .build())
                 .retrieve()
-                .body(String.class);
+                .body(MovieSearchResponseDto.class);
     }
 }
