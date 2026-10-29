@@ -1,4 +1,4 @@
-package org.mynion.movies.dto;
+package org.mynion.movies.dto.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

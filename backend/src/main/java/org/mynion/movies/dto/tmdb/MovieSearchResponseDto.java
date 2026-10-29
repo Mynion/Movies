@@ -1,6 +1,7 @@
-package org.mynion.movies.dto;
+package org.mynion.movies.dto.tmdb;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.mynion.movies.dto.tmdb.MovieDto;
 
 import java.util.List;
 

@@ -1,6 +1,7 @@
 package org.mynion.movies.service;
 
-import org.mynion.movies.dto.MovieSearchResponseDto;
+import org.mynion.movies.dto.tmdb.MovieDetailsDto;
+import org.mynion.movies.dto.tmdb.MovieSearchResponseDto;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -22,5 +23,16 @@ public class TmdbService {
                         .build())
                 .retrieve()
                 .body(MovieSearchResponseDto.class);
+    }
+
+    public MovieDetailsDto getMovieDetails(Long id) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/movie/{id}")
+                        .queryParam("language", "pl-PL")
+                        .queryParam("append_to_response", "credits")
+                        .build(id))
+                .retrieve()
+                .body(MovieDetailsDto.class);
     }
 }
