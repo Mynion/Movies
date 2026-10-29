@@ -30,6 +30,6 @@ public class MovieController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(required = false) Integer genreId) {
 
-        return tmdbService.getM ovies(page, genreId);
+        return tmdbService.getMovies(page, genreId);
     }
 }
