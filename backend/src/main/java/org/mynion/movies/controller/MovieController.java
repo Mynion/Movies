@@ -24,4 +24,12 @@ public class MovieController {
     public MovieDetailsDto getMovieDetails(@PathVariable Long id) {
         return tmdbService.getMovieDetails(id);
     }
+
+    @GetMapping
+    public MovieSearchResponseDto getMovies(
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(required = false) Integer genreId) {
+
+        return tmdbService.getM ovies(page, genreId);
+    }
 }

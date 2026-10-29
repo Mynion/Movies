@@ -35,4 +35,22 @@ public class TmdbService {
                 .retrieve()
                 .body(MovieDetailsDto.class);
     }
+
+    public MovieSearchResponseDto getMovies(int page, Integer genreId) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder -> {
+                    uriBuilder
+                            .path("/discover/movie")
+                            .queryParam("language", "pl-PL")
+                            .queryParam("page", page);
+
+                    if (genreId != null) {
+                        uriBuilder.queryParam("with_genres", genreId);
+                    }
+
+                    return uriBuilder.build();
+                })
+                .retrieve()
+                .body(MovieSearchResponseDto.class);
+    }
 }
