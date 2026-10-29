@@ -60,7 +60,7 @@ public class TmdbService {
         return tmdbRestClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
-                                .path("/genre/{movieType}/list")
+                                .path("/genre/{mediaType}/list")
                                 .queryParam("language", "pl-PL")
                                 .build(mediaType))
                 .retrieve()
