@@ -84,6 +84,7 @@ public class SecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/logout",
                                 "/api/movies/**",
+                                "/api/series/**",
                                 "/api/genres",
                                 "/api/genres/**"
                         ).permitAll()

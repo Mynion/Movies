@@ -1,8 +1,6 @@
 package org.mynion.movies.service;
 
-import org.mynion.movies.dto.tmdb.GenresDto;
-import org.mynion.movies.dto.tmdb.MovieDetailsDto;
-import org.mynion.movies.dto.tmdb.MovieSearchResponseDto;
+import org.mynion.movies.dto.tmdb.*;
 import org.mynion.movies.util.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
@@ -46,9 +44,7 @@ public class TmdbService {
                             .queryParam("language", "pl-PL")
                             .queryParam("page", page);
 
-                    if (genreId != null) {
-                        uriBuilder.queryParam("with_genres", genreId);
-                    }
+                    if (genreId != null) uriBuilder.queryParam("with_genres", genreId);
 
                     return uriBuilder.build();
                 })
@@ -72,5 +68,46 @@ public class TmdbService {
                                 .build(tmdbType))
                 .retrieve()
                 .body(GenresDto.class);
+    }
+
+    public SeriesSearchResponseDto searchSeries(String query) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/search/tv")
+                                .queryParam("query", query)
+                                .queryParam("language", "pl-PL")
+                                .build())
+                .retrieve()
+                .body(SeriesSearchResponseDto.class);
+    }
+
+    public SeriesDto getSeriesDetails(Long id) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/tv/{id}")
+                                .queryParam("language", "pl-PL")
+                                .build(id))
+                .retrieve()
+                .body(SeriesDto.class);
+
+    }
+
+    public SeriesSearchResponseDto getSeries(int page, Integer genreId) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder ->
+                {
+                    uriBuilder
+                            .path("/discover/tv")
+                            .queryParam("page", page)
+                            .queryParam("language", "pl-PL");
+
+                    if (genreId != null) uriBuilder.queryParam("with_genres", genreId);
+
+                    return uriBuilder.build();
+                })
+                .retrieve()
+                .body(SeriesSearchResponseDto.class);
     }
 }
