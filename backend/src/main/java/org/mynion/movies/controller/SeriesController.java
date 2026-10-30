@@ -1,5 +1,6 @@
 package org.mynion.movies.controller;
 
+import org.mynion.movies.dto.tmdb.SeriesDetailsDto;
 import org.mynion.movies.dto.tmdb.SeriesDto;
 import org.mynion.movies.dto.tmdb.SeriesSearchResponseDto;
 import org.mynion.movies.service.TmdbService;
@@ -15,7 +16,7 @@ public class SeriesController {
     }
 
     @GetMapping("/{id}")
-    public SeriesDto getSeriesDetails(@PathVariable Long id) {
+    public SeriesDetailsDto getSeriesDetails(@PathVariable Long id) {
         return tmdbService.getSeriesDetails(id);
     }
 

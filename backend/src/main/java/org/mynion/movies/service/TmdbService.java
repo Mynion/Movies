@@ -82,7 +82,7 @@ public class TmdbService {
                 .body(SeriesSearchResponseDto.class);
     }
 
-    public SeriesDto getSeriesDetails(Long id) {
+    public SeriesDetailsDto getSeriesDetails(Long id) {
         return tmdbRestClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
@@ -90,7 +90,7 @@ public class TmdbService {
                                 .queryParam("language", "pl-PL")
                                 .build(id))
                 .retrieve()
-                .body(SeriesDto.class);
+                .body(SeriesDetailsDto.class);
 
     }
 
