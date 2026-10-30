@@ -1,6 +1,5 @@
 package org.mynion.movies.service;
 
-import org.mynion.movies.dto.tmdb.GenreDto;
 import org.mynion.movies.dto.tmdb.GenresDto;
 import org.mynion.movies.dto.tmdb.MovieDetailsDto;
 import org.mynion.movies.dto.tmdb.MovieSearchResponseDto;
