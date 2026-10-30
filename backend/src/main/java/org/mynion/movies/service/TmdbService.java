@@ -4,6 +4,7 @@ import org.mynion.movies.dto.tmdb.GenreDto;
 import org.mynion.movies.dto.tmdb.GenresDto;
 import org.mynion.movies.dto.tmdb.MovieDetailsDto;
 import org.mynion.movies.dto.tmdb.MovieSearchResponseDto;
+import org.mynion.movies.util.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -56,13 +57,20 @@ public class TmdbService {
                 .body(MovieSearchResponseDto.class);
     }
 
-    public GenresDto getGenres(String mediaType) {
+    public GenresDto getGenres(MediaType mediaType) {
+        String tmdbType = switch (mediaType) {
+            case MOVIE -> "movie";
+            case TV_SERIES -> "tv";
+            case SEASON, EPISODE ->
+                    throw new IllegalArgumentException("Genres are not available for seasons or episodes");
+        };
+
         return tmdbRestClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
                                 .path("/genre/{mediaType}/list")
                                 .queryParam("language", "pl-PL")
-                                .build(mediaType))
+                                .build(tmdbType))
                 .retrieve()
                 .body(GenresDto.class);
     }
