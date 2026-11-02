@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 import java.util.Map;
 
@@ -84,5 +85,16 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ApiErrorDto(400, message));
+    }
+
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ApiErrorDto> handleTypeMismatch(
+            MethodArgumentTypeMismatchException ex
+    ) {
+        return ResponseEntity.badRequest()
+                .body(new ApiErrorDto(
+                        400,
+                        "Nieprawidłowa wartość parametru: " + ex.getName()
+                ));
     }
 }
