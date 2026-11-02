@@ -110,4 +110,31 @@ public class TmdbService {
                 .retrieve()
                 .body(SeriesSearchResponseDto.class);
     }
+
+    public SeasonDetailsDto getSeasonDetails(
+            Long seriesId,
+            Integer seasonNumber
+    ) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder.path("/tv/{series_id}/season/{season_number}")
+                                .queryParam("language", "pl-PL")
+                                .build(seriesId, seasonNumber))
+                .retrieve()
+                .body(SeasonDetailsDto.class);
+    }
+
+    public EpisodeDto getEpisodeDetails(
+            Long seriesId,
+            Integer seasonNumber,
+            Integer episodeNumber
+    ) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder.path("/tv/{series_id}/season/{season_number}/episode/{episode_number}")
+                                .queryParam("language", "pl-PL")
+                                .build(seriesId, seasonNumber, episodeNumber))
+                .retrieve()
+                .body(EpisodeDto.class);
+    }
 }

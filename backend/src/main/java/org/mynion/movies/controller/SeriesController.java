@@ -1,8 +1,6 @@
 package org.mynion.movies.controller;
 
-import org.mynion.movies.dto.tmdb.SeriesDetailsDto;
-import org.mynion.movies.dto.tmdb.SeriesDto;
-import org.mynion.movies.dto.tmdb.SeriesSearchResponseDto;
+import org.mynion.movies.dto.tmdb.*;
 import org.mynion.movies.service.TmdbService;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,5 +26,22 @@ public class SeriesController {
     @GetMapping()
     public SeriesSearchResponseDto getSeries(@RequestParam(defaultValue = "1") int page, @RequestParam(required = false) Integer genreId) {
         return tmdbService.getSeries(page, genreId);
+    }
+
+    @GetMapping("/{id}/seasons/{seasonNumber}")
+    public SeasonDetailsDto getSeasonDetails(
+            @PathVariable Long id,
+            @PathVariable Integer seasonNumber
+    ) {
+        return tmdbService.getSeasonDetails(id, seasonNumber);
+    }
+
+    @GetMapping("/{id}/seasons/{seasonNumber}/episodes/{episodeNumber}")
+    public EpisodeDto getEpisodeDetails(
+            @PathVariable Long id,
+            @PathVariable Integer seasonNumber,
+            @PathVariable Integer episodeNumber
+    ) {
+        return tmdbService.getEpisodeDetails(id, seasonNumber, episodeNumber);
     }
 }
