@@ -14,7 +14,7 @@ Utwórz plik .env
 - GET /api/movies/{id} Szczegóły Filmu
 - GET /api/series/search?query= Wyszukiwanie seriali
 - GET /api/series/{id} Szczegóły serialu
-- POST api/ratings Dodawanie oceny
+- POST /api/ratings Dodawanie oceny
 - GET /api/ratings/{id} Ocena
 
 ## Logowanie
