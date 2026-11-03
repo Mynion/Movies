@@ -1,6 +1,6 @@
-const API_URL = "/api/auth";
+const API_URL = "http://localhost:8080/api/auth";
 
-export async function login(email, password) {
+export async function login(username, password) {
     const response = await fetch(`${API_URL}/login`, {
         method: "POST",
 
@@ -11,13 +11,13 @@ export async function login(email, password) {
         credentials: "include",
 
         body: JSON.stringify({
-            email,
+            username,
             password,
         }),
     });
 
     if (!response.ok) {
-        throw new Error("Nieprawidłowy e-mail lub hasło.");
+        throw new Error("Nieprawidłowy login lub hasło.");
     }
 
     return response.json();
@@ -26,21 +26,24 @@ export async function login(email, password) {
 export async function register(username, email, password) {
     const response = await fetch(`${API_URL}/register`, {
         method: "POST",
-
         headers: {
-            "Content-Type": "application/json",
+            "Content-Type": "application/json"
         },
-
+        credentials: "include",
         body: JSON.stringify({
             username,
             email,
-            password,
-        }),
+            password
+        })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        throw new Error("Nie udało się utworzyć konta.");
+        throw new Error(
+            data.message || JSON.stringify(data)
+        );
     }
 
-    return response.json();
+    return data;
 }

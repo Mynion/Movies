@@ -1,12 +1,13 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
-import { login } from "../services/auth";
+import { login as loginUser } from "../services/auth";
 import Navbar from "../components/Navbar.jsx";
 
 function Login() {
     const navigate = useNavigate();
 
-    const [email, setEmail] = useState("");
+    const [login, setLogin] = useState("");
     const [password, setPassword] = useState("");
 
     const [error, setError] = useState("");
@@ -19,8 +20,7 @@ function Login() {
         setLoading(true);
 
         try {
-            await login(email, password);
-
+            await loginUser(login, password);
             navigate("/");
         } catch (err) {
             setError(err.message);
@@ -30,13 +30,11 @@ function Login() {
     }
 
     return (
-        <div className="min-h-screen bg-[#181818] ">
+        <div className="min-h-screen bg-[#181818]">
+            <Navbar />
 
-            <Navbar/>
-
-            <div className="flex items-center justify-center px-4">
-
-                <div className="bg-[#242426] border border-[#303034] rounded-2xl p-8 w-full max-w-md ">
+            <div className="flex items-center justify-center px-4 py-10">
+                <div className="bg-[#242426] border border-[#303034] rounded-2xl p-8 w-full max-w-md">
 
                     <h1 className="text-3xl font-bold text-white text-center mb-2">
                         Zaloguj się
@@ -52,14 +50,14 @@ function Login() {
 
                         <div>
                             <label className="block text-gray-300 text-sm mb-2">
-                                Adres e-mail
+                                Login
                             </label>
 
                             <input
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                placeholder="twoj@email.pl"
+                                type="text"
+                                value={login}
+                                onChange={(e) => setLogin(e.target.value)}
+                                placeholder="Wprowadź login"
                                 required
                                 className="w-full bg-[#303034] text-white p-3 rounded-lg outline-none focus:ring-2 focus:ring-[#cf6054]"
                             />
@@ -92,7 +90,6 @@ function Login() {
 
                     <p className="text-gray-400 text-center mt-6 text-sm">
                         Nie masz konta?{" "}
-
                         <Link
                             to="/register"
                             className="text-[#cf6054] hover:underline"
@@ -102,7 +99,6 @@ function Login() {
                     </p>
 
                 </div>
-
             </div>
         </div>
     );
