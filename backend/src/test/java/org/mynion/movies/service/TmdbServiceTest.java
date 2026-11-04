@@ -1,8 +1,7 @@
 package org.mynion.movies.service;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.Parameter;
-import org.junit.jupiter.params.ParameterizedTest;
 import org.mynion.movies.dto.tmdb.*;
 import org.mynion.movies.util.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -15,29 +14,31 @@ import static org.springframework.test.web.client.response.MockRestResponseCreat
 public class TmdbServiceTest {
     private static final String BASE_URL =
             "https://api.themoviedb.org/3";
+    private TmdbService tmdbService;
+    private MockRestServiceServer mockServer;
+
+    @BeforeEach
+    void setUp() {
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl(BASE_URL);
+        mockServer = MockRestServiceServer.bindTo(builder).build();
+        tmdbService = new TmdbService(builder.build());
+    }
 
     @Test
     void shouldReturnMovieGenres() {
         // Arrange
-        RestClient.Builder builder = RestClient.builder()
-                .baseUrl(BASE_URL);
-
-        MockRestServiceServer mockServer =
-                MockRestServiceServer.bindTo(builder).build();
-
-        TmdbService tmdbService = new TmdbService(builder.build());
-
         mockServer.expect(requestTo(
                         BASE_URL + "/genre/movie/list?language=pl-PL"))
                 .andRespond(withSuccess(
                         """
-                        {
-                            "genres": [
-                                {"id": 28, "name": "Action"},
-                                {"id": 18, "name": "Drama"}
-                            ]
-                        }
-                        """,
+                                {
+                                    "genres": [
+                                        {"id": 28, "name": "Action"},
+                                        {"id": 18, "name": "Drama"}
+                                    ]
+                                }
+                                """,
                         org.springframework.http.MediaType.APPLICATION_JSON
                 ));
 
@@ -54,11 +55,6 @@ public class TmdbServiceTest {
 
     @Test
     void shouldThrowExceptionForSeasonGenres() {
-        // Arrange
-        TmdbService tmdbService = new TmdbService(
-                RestClient.builder().build()
-        );
-
         // Act & Assert
         assertThrows(
                 IllegalArgumentException.class,
@@ -67,27 +63,19 @@ public class TmdbServiceTest {
     }
 
     @Test
-    void shouldReturnSeriesGenres(){
+    void shouldReturnSeriesGenres() {
         // Arrange
-        RestClient.Builder builder = RestClient.builder()
-                .baseUrl(BASE_URL);
-
-        MockRestServiceServer mockServer =
-                MockRestServiceServer.bindTo(builder).build();
-
-        TmdbService tmdbService = new TmdbService(builder.build());
-
         mockServer.expect(requestTo(
                         BASE_URL + "/genre/tv/list?language=pl-PL"))
                 .andRespond(withSuccess(
                         """
-                        {
-                            "genres": [
-                                {"id": 18, "name": "Drama"},
-                                {"id": 35, "name": "Comedy"}
-                            ]
-                        }
-                        """,
+                                {
+                                    "genres": [
+                                        {"id": 18, "name": "Drama"},
+                                        {"id": 35, "name": "Comedy"}
+                                    ]
+                                }
+                                """,
                         org.springframework.http.MediaType.APPLICATION_JSON
                 ));
 
@@ -103,32 +91,25 @@ public class TmdbServiceTest {
     }
 
     @Test
-    void shouldReturnMovies(){
-        RestClient.Builder builder = RestClient.builder()
-                .baseUrl(BASE_URL);
-
-        MockRestServiceServer mockServer = MockRestServiceServer.bindTo(builder).build();
-
-        TmdbService tmdbService = new TmdbService(builder.build());
-
+    void shouldReturnMovies() {
         String query = "Inception";
 
         mockServer.expect(requestTo(BASE_URL + "/search/movie?query=" + query + "&language=pl-PL"))
                 .andRespond(withSuccess(
                         """
-                        {
-                            "page": 1,
-                            "results": [
                                 {
-                                    "id": 1,
-                                    "title": "Movie Title",
-                                    "overview": "Movie Overview"
+                                    "page": 1,
+                                    "results": [
+                                        {
+                                            "id": 1,
+                                            "title": "Movie Title",
+                                            "overview": "Movie Overview"
+                                        }
+                                    ],
+                                    "total_pages": 1,
+                                    "total_results": 1
                                 }
-                            ],
-                            "total_pages": 1,
-                            "total_results": 1
-                        }
-                        """,
+                                """,
                         org.springframework.http.MediaType.APPLICATION_JSON
                 ));
 
@@ -147,31 +128,23 @@ public class TmdbServiceTest {
         // Arrange
         String query = "Breaking Bad";
 
-        RestClient.Builder builder = RestClient.builder()
-                .baseUrl(BASE_URL);
-
-        MockRestServiceServer mockServer =
-                MockRestServiceServer.bindTo(builder).build();
-
-        TmdbService tmdbService = new TmdbService(builder.build());
-
         mockServer.expect(requestTo(
                         BASE_URL + "/search/tv?query=Breaking%20Bad&language=pl-PL"))
                 .andRespond(withSuccess(
                         """
-                        {
-                            "page": 1,
-                            "results": [
                                 {
-                                    "id": 1,
-                                    "name": "Breaking Bad",
-                                    "overview": "A chemistry teacher starts producing methamphetamine."
+                                    "page": 1,
+                                    "results": [
+                                        {
+                                            "id": 1,
+                                            "name": "Breaking Bad",
+                                            "overview": "A chemistry teacher starts producing methamphetamine."
+                                        }
+                                    ],
+                                    "total_pages": 1,
+                                    "total_results": 1
                                 }
-                            ],
-                            "total_pages": 1,
-                            "total_results": 1
-                        }
-                        """,
+                                """,
                         org.springframework.http.MediaType.APPLICATION_JSON
                 ));
 
@@ -192,43 +165,35 @@ public class TmdbServiceTest {
         // Arrange
         Long movieId = 550L;
 
-        RestClient.Builder builder = RestClient.builder()
-                .baseUrl(BASE_URL);
-
-        MockRestServiceServer mockServer =
-                MockRestServiceServer.bindTo(builder).build();
-
-        TmdbService tmdbService = new TmdbService(builder.build());
-
         mockServer.expect(requestTo(
                         BASE_URL + "/movie/" + movieId + "?language=pl-PL&append_to_response=credits"))
                 .andRespond(withSuccess(
                         """
-                        {
-                            "id": 550,
-                            "title": "Fight Club",
-                            "overview": "A ticking-time-bomb insomniac...",
-                            "release_date": "1999-10-15",
-                            "runtime": 139,
-                            "vote_average": 8.4,
-                            "genres": [
                                 {
-                                    "id": 18,
-                                    "name": "Drama"
-                                }
-                            ],
-                            "credits": {
-                                "cast": [
-                                    {
-                                        "id": 819,
-                                        "name": "Edward Norton",
-                                        "character": "The Narrator",
-                                        "order": 0
+                                    "id": 550,
+                                    "title": "Fight Club",
+                                    "overview": "A ticking-time-bomb insomniac...",
+                                    "release_date": "1999-10-15",
+                                    "runtime": 139,
+                                    "vote_average": 8.4,
+                                    "genres": [
+                                        {
+                                            "id": 18,
+                                            "name": "Drama"
+                                        }
+                                    ],
+                                    "credits": {
+                                        "cast": [
+                                            {
+                                                "id": 819,
+                                                "name": "Edward Norton",
+                                                "character": "The Narrator",
+                                                "order": 0
+                                            }
+                                        ]
                                     }
-                                ]
-                            }
-                        }
-                        """,
+                                }
+                                """,
                         org.springframework.http.MediaType.APPLICATION_JSON
                 ));
 
@@ -251,34 +216,26 @@ public class TmdbServiceTest {
         // Arrange
         Long seriesId = 1396L;
 
-        RestClient.Builder builder = RestClient.builder()
-                .baseUrl(BASE_URL);
-
-        MockRestServiceServer mockServer =
-                MockRestServiceServer.bindTo(builder).build();
-
-        TmdbService tmdbService = new TmdbService(builder.build());
-
         mockServer.expect(requestTo(
                         BASE_URL + "/tv/" + seriesId + "?language=pl-PL"))
                 .andRespond(withSuccess(
                         """
-                        {
-                            "id": 1396,
-                            "name": "Breaking Bad",
-                            "overview": "A chemistry teacher starts producing methamphetamine.",
-                            "first_air_date": "2008-01-20",
-                            "number_of_seasons": 5,
-                            "number_of_episodes": 62,
-                            "vote_average": 8.9,
-                            "genres": [
                                 {
-                                    "id": 18,
-                                    "name": "Drama"
+                                    "id": 1396,
+                                    "name": "Breaking Bad",
+                                    "overview": "A chemistry teacher starts producing methamphetamine.",
+                                    "first_air_date": "2008-01-20",
+                                    "number_of_seasons": 5,
+                                    "number_of_episodes": 62,
+                                    "vote_average": 8.9,
+                                    "genres": [
+                                        {
+                                            "id": 18,
+                                            "name": "Drama"
+                                        }
+                                    ]
                                 }
-                            ]
-                        }
-                        """,
+                                """,
                         org.springframework.http.MediaType.APPLICATION_JSON
                 ));
 
