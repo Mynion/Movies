@@ -2,6 +2,8 @@ package org.mynion.movies.service;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.mynion.movies.dto.tmdb.*;
 import org.mynion.movies.util.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
@@ -356,5 +358,15 @@ public class TmdbServiceTest {
         assertEquals(58, result.runtime());
 
         mockServer.verify();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = MediaType.class, names = {"SEASON", "EPISODE"})
+    void shouldThrowExceptionForUnsupportedMediaTypes(MediaType mediaType) {
+        // Act & Assert
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> tmdbService.getGenres(mediaType)
+        );
     }
 }
