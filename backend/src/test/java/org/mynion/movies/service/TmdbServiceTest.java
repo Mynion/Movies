@@ -67,7 +67,37 @@ public class TmdbServiceTest {
     @Test
     void shouldReturnSeriesGenres(){
         // Arrange
-        TmdbService tmdbService = new TmdbService(RestClient.builder().build());
+        RestClient.Builder builder = RestClient.builder()
+                .baseUrl(BASE_URL);
 
+        MockRestServiceServer mockServer =
+                MockRestServiceServer.bindTo(builder).build();
+
+        TmdbService tmdbService = new TmdbService(builder.build());
+
+        mockServer.expect(requestTo(
+                        BASE_URL + "/genre/tv/list?language=pl-PL"))
+                .andRespond(withSuccess(
+                        """
+                        {
+                            "genres": [
+                                {"id": 18, "name": "Drama"},
+                                {"id": 35, "name": "Comedy"}
+                            ]
+                        }
+                        """,
+                        org.springframework.http.MediaType.APPLICATION_JSON
+                ));
+
+        // Act
+        GenresDto result = tmdbService.getGenres(MediaType.TV_SERIES);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.genres().size());
+        assertEquals("Drama", result.genres().get(0).name());
+
+        mockServer.verify();
     }
+
 }
