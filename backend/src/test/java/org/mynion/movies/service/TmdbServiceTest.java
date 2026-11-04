@@ -252,4 +252,109 @@ public class TmdbServiceTest {
 
         mockServer.verify();
     }
+
+    @Test
+    void shouldReturnSeasonDetails() {
+        // Arrange
+        Long seriesId = 1396L;
+        Integer seasonNumber = 1;
+
+        mockServer.expect(requestTo(
+                        BASE_URL + "/tv/" + seriesId
+                                + "/season/" + seasonNumber + "?language=pl-PL"))
+                .andRespond(withSuccess(
+                        """
+                        {
+                            "id": 3572,
+                            "name": "Season 1",
+                            "overview": "The first season.",
+                            "season_number": 1,
+                            "air_date": "2008-01-20",
+                            "episodes": [
+                                {
+                                    "id": 62085,
+                                    "name": "Pilot",
+                                    "overview": "A high school chemistry teacher...",
+                                    "air_date": "2008-01-20",
+                                    "episode_number": 1,
+                                    "season_number": 1,
+                                    "runtime": 58,
+                                    "vote_average": 8.0
+                                },
+                                {
+                                    "id": 62086,
+                                    "name": "Cat's in the Bag...",
+                                    "overview": "The story continues.",
+                                    "air_date": "2008-01-27",
+                                    "episode_number": 2,
+                                    "season_number": 1,
+                                    "runtime": 48,
+                                    "vote_average": 7.9
+                                }
+                            ]
+                        }
+                        """,
+                        org.springframework.http.MediaType.APPLICATION_JSON
+                ));
+
+        // Act
+        SeasonDetailsDto result =
+                tmdbService.getSeasonDetails(seriesId, seasonNumber);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(3572L, result.id());
+        assertEquals("Season 1", result.name());
+        assertEquals(1, result.seasonNumber());
+
+        assertEquals(2, result.episodes().size());
+        assertEquals("Pilot", result.episodes().get(0).name());
+        assertEquals(1, result.episodes().get(0).episodeNumber());
+
+        mockServer.verify();
+    }
+
+    @Test
+    void shouldReturnEpisodeDetails() {
+        // Arrange
+        Long seriesId = 1396L;
+        Integer seasonNumber = 1;
+        Integer episodeNumber = 1;
+
+        mockServer.expect(requestTo(
+                        BASE_URL + "/tv/" + seriesId
+                                + "/season/" + seasonNumber
+                                + "/episode/" + episodeNumber
+                                + "?language=pl-PL"))
+                .andRespond(withSuccess(
+                        """
+                        {
+                            "id": 62085,
+                            "name": "Pilot",
+                            "overview": "A high school chemistry teacher...",
+                            "air_date": "2008-01-20",
+                            "episode_number": 1,
+                            "season_number": 1,
+                            "runtime": 58,
+                            "vote_average": 8.0
+                        }
+                        """,
+                        org.springframework.http.MediaType.APPLICATION_JSON
+                ));
+
+        // Act
+        EpisodeDto result = tmdbService.getEpisodeDetails(
+                seriesId, seasonNumber, episodeNumber
+        );
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(62085L, result.id());
+        assertEquals("Pilot", result.name());
+        assertEquals(1, result.seasonNumber());
+        assertEquals(1, result.episodeNumber());
+        assertEquals(58, result.runtime());
+
+        mockServer.verify();
+    }
 }
