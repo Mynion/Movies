@@ -6,11 +6,15 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.mynion.movies.dto.tmdb.*;
 import org.mynion.movies.util.MediaType;
+import org.springframework.http.HttpStatus;
 import org.springframework.test.web.client.MockRestServiceServer;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.client.RestClient;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.requestTo;
+import static org.springframework.test.web.client.response.MockRestResponseCreators.withStatus;
 import static org.springframework.test.web.client.response.MockRestResponseCreators.withSuccess;
 
 public class TmdbServiceTest {
@@ -364,9 +368,70 @@ public class TmdbServiceTest {
     @EnumSource(value = MediaType.class, names = {"SEASON", "EPISODE"})
     void shouldThrowExceptionForUnsupportedMediaTypes(MediaType mediaType) {
         // Act & Assert
-        assertThrows(
+        IllegalArgumentException exception = assertThrows(
                 IllegalArgumentException.class,
                 () -> tmdbService.getGenres(mediaType)
         );
+
+        assertEquals(
+                "Genres are not available for seasons or episodes",
+                exception.getMessage()
+        );
+    }
+
+    @Test
+    void shouldThrowExceptionWhenMovieNotFound() {
+        // Arrange
+        Long movieId = 999999L;
+
+        mockServer.expect(requestTo(
+                        BASE_URL + "/movie/" + movieId
+                                + "?language=pl-PL&append_to_response=credits"))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+        // Act & Assert
+        assertThrows(
+                HttpClientErrorException.NotFound.class,
+                () -> tmdbService.getMovieDetails(movieId)
+        );
+
+        mockServer.verify();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenSeriesNotFound() {
+        // Arrange
+        Long seriesId = 999999L;
+
+        mockServer.expect(requestTo(
+                        BASE_URL + "/tv/" + seriesId + "?language=pl-PL"))
+                .andRespond(withStatus(HttpStatus.NOT_FOUND));
+
+        // Act & Assert
+        assertThrows(
+                HttpClientErrorException.NotFound.class,
+                () -> tmdbService.getSeriesDetails(seriesId)
+        );
+
+        mockServer.verify();
+    }
+
+    @Test
+    void shouldThrowExceptionWhenTmdbReturnsServerError() {
+        // Arrange
+        Long movieId = 550L;
+
+        mockServer.expect(requestTo(
+                        BASE_URL + "/movie/" + movieId
+                                + "?language=pl-PL&append_to_response=credits"))
+                .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
+
+        // Act & Assert
+        assertThrows(
+                HttpServerErrorException.InternalServerError.class,
+                () -> tmdbService.getMovieDetails(movieId)
+        );
+
+        mockServer.verify();
     }
 }
