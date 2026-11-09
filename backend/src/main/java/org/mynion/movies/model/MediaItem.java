@@ -3,32 +3,54 @@ package org.mynion.movies.model;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.JdbcTypeCode;
-import org.hibernate.type.SqlTypes;
+import org.mynion.movies.converter.MediaTypeConverter;
 import org.mynion.movies.util.MediaType;
 
-import java.util.Date;
+import java.time.Instant;
+import java.time.LocalDate;
 
 @Entity
 @Table(name = "media_items")
 @Getter
 @Setter
 public class MediaItem {
+
     @Id
-    @Column(name = "media_item_id")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    @Column(name = "media_item_id")
+    private Long id;
+
+    @Column(nullable = false)
     private String title;
+
+    @Column(columnDefinition = "TEXT")
     private String description;
+
     private Integer duration;
-    @Enumerated(EnumType.STRING)
-    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    private MediaType media_type;
-    private Integer parent_id;
-    private Integer season_number;
-    private Integer episode_number;
-    private String poster_path;
-    private int tmdb_id;
-    private Date release_date;
-    private Date created_at;
+
+    @Convert(converter = MediaTypeConverter.class)
+    @Column(name = "media_type", nullable = false)
+    private MediaType mediaType;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private MediaItem parent;
+
+    @Column(name = "season_number")
+    private Integer seasonNumber;
+
+    @Column(name = "episode_number")
+    private Integer episodeNumber;
+
+    @Column(name = "poster_path")
+    private String posterPath;
+
+    @Column(name = "tmdb_id")
+    private Long tmdbId;
+
+    @Column(name = "release_date")
+    private LocalDate releaseDate;
+
+    @Column(name = "created_at", insertable = false, updatable = false)
+    private Instant createdAt;
 }
