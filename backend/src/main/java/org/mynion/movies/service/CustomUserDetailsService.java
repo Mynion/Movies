@@ -1,7 +1,7 @@
 package org.mynion.movies.service;
 
 import org.mynion.movies.model.User;
-import org.mynion.movies.repo.UserRepo;
+import org.mynion.movies.repository.UserRepo;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

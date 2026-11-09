@@ -1,4 +1,4 @@
-package org.mynion.movies.repo;
+package org.mynion.movies.repository;
 
 import org.mynion.movies.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
