@@ -3,6 +3,7 @@ package org.mynion.movies.service;
 
 import org.mynion.movies.dto.rating.CreateRatingRequestDto;
 import org.mynion.movies.dto.rating.CreateRatingScoreDto;
+import org.mynion.movies.exception.RatingAlreadyExistsException;
 import org.mynion.movies.model.MediaItem;
 import org.mynion.movies.model.Rating;
 import org.mynion.movies.model.RatingScore;
@@ -53,9 +54,7 @@ public class RatingService {
         if (ratingRepository.existsByUserIdAndMediaItemId(
                 userId, mediaItem.getId()
         )) {
-            throw new IllegalArgumentException(
-                    "User has already rated this media item"
-            );
+            throw new RatingAlreadyExistsException();
         }
 
         Rating rating = new Rating();

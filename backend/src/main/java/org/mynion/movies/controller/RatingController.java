@@ -31,7 +31,7 @@ public class RatingController {
     ) {
         User user = userRepo.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "User not found"
+                        "Nie znaleziono użytkownika"
                 ));
 
         ratingService.createRating(request, user.getId());
