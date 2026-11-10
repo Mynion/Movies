@@ -2,7 +2,7 @@ package org.mynion.movies.service;
 
 import org.mynion.movies.dto.RegisterRequest;
 import org.mynion.movies.exception.UserAlreadyExistsException;
-import org.mynion.movies.model.User;
+import org.mynion.movies.entity.User;
 import org.mynion.movies.repository.UserRepo;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

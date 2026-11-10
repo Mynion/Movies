@@ -1,10 +1,10 @@
-package org.mynion.movies.model;
+package org.mynion.movies.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.mynion.movies.converter.MediaTypeConverter;
-import org.mynion.movies.util.MediaType;
+import org.mynion.movies.enums.MediaType;
 
 import java.time.Instant;
 import java.time.LocalDate;

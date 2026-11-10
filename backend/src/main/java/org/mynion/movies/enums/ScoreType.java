@@ -1,5 +1,5 @@
 
-package org.mynion.movies.util;
+package org.mynion.movies.enums;
 
 public enum ScoreType {
     STORY_SCORE,

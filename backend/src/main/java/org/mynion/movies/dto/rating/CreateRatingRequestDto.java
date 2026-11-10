@@ -3,7 +3,7 @@ package org.mynion.movies.dto.rating;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
-import org.mynion.movies.util.MediaType;
+import org.mynion.movies.enums.MediaType;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -1,11 +1,11 @@
 
-package org.mynion.movies.model;
+package org.mynion.movies.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.mynion.movies.converter.ScoreTypeConverter;
-import org.mynion.movies.util.ScoreType;
+import org.mynion.movies.enums.ScoreType;
 
 import java.math.BigDecimal;
 

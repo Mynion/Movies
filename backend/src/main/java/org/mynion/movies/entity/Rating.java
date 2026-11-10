@@ -1,5 +1,5 @@
 
-package org.mynion.movies.model;
+package org.mynion.movies.entity;
 
 import jakarta.persistence.*;
 import lombok.Getter;
