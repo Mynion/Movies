@@ -17,6 +17,7 @@ import org.mynion.movies.repository.RatingRepository;
 import org.mynion.movies.repository.UserRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.mynion.movies.exception.RatingNotFoundException;
 
 import java.util.List;
 
@@ -135,4 +136,11 @@ public class RatingService {
                 .orElse(List.of());
     }
 
+    @Transactional(readOnly = true)
+    public RatingResponseDto getRating(Long id) {
+        Rating rating = ratingRepository.findById(id)
+                .orElseThrow(RatingNotFoundException::new);
+
+        return ratingMapper.toDto(rating);
+    }
 }

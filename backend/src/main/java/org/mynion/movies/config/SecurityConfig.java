@@ -1,7 +1,9 @@
 package org.mynion.movies.config;
 
+import jakarta.servlet.DispatcherType;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -79,6 +81,7 @@ public class SecurityConfig {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 .authorizeHttpRequests(auth -> auth
+                        .dispatcherTypeMatchers(DispatcherType.ERROR).permitAll()
                         .requestMatchers(
                                 "/api/auth/register",
                                 "/api/auth/login",
@@ -86,8 +89,12 @@ public class SecurityConfig {
                                 "/api/movies/**",
                                 "/api/series/**",
                                 "/api/genres",
-                                "/api/genres/**",
-                                "/api/ratings/media"
+                                "/api/genres/**"
+                        ).permitAll()
+                        .requestMatchers(
+                                HttpMethod.GET,
+                                "/api/ratings/media",
+                                "/api/ratings/{id}"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

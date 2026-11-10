@@ -62,4 +62,10 @@ public class RatingController {
         return ratingService.getMediaRatings(mediaType, tmdbId);
     }
 
+    @GetMapping("/{id}")
+    public RatingResponseDto getRating(
+            @PathVariable @Positive Long id
+    ) {
+        return ratingService.getRating(id);
+    }
 }

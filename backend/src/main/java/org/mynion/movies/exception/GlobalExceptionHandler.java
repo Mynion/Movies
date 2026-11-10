@@ -116,4 +116,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(status)
                 .body(new ApiErrorDto(status.value(), message));
     }
+
+    @ExceptionHandler(RatingNotFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleRatingNotFound(
+            RatingNotFoundException ex
+    ) {
+        return buildError(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
 }
