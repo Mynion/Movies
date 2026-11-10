@@ -1,7 +1,7 @@
 package org.mynion.movies.repository;
 
-import org.mynion.movies.model.MediaItem;
-import org.mynion.movies.util.MediaType;
+import org.mynion.movies.entity.MediaItem;
+import org.mynion.movies.enums.MediaType;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

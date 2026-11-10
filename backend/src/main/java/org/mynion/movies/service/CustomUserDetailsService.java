@@ -1,6 +1,6 @@
 package org.mynion.movies.service;
 
-import org.mynion.movies.model.User;
+import org.mynion.movies.entity.User;
 import org.mynion.movies.repository.UserRepo;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

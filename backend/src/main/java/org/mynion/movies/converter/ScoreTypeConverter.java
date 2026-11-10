@@ -3,7 +3,7 @@ package org.mynion.movies.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.mynion.movies.util.ScoreType;
+import org.mynion.movies.enums.ScoreType;
 
 @Converter
 public class ScoreTypeConverter implements AttributeConverter<ScoreType, String> {

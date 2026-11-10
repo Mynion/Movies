@@ -2,7 +2,7 @@ package org.mynion.movies.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.mynion.movies.util.MediaType;
+import org.mynion.movies.enums.MediaType;
 
 @Converter
 public class MediaTypeConverter implements AttributeConverter<MediaType, String> {

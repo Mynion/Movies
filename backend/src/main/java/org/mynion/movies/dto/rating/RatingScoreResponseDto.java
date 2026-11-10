@@ -1,7 +1,7 @@
 
 package org.mynion.movies.dto.rating;
 
-import org.mynion.movies.util.ScoreType;
+import org.mynion.movies.enums.ScoreType;
 
 import java.math.BigDecimal;
 

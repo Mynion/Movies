@@ -1,7 +1,7 @@
 
 package org.mynion.movies.dto.rating;
 
-import org.mynion.movies.util.MediaType;
+import org.mynion.movies.enums.MediaType;
 
 import java.math.BigDecimal;
 import java.time.Instant;

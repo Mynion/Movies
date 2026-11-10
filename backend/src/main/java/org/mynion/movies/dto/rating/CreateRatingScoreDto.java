@@ -2,7 +2,7 @@
 package org.mynion.movies.dto.rating;
 
 import jakarta.validation.constraints.*;
-import org.mynion.movies.util.ScoreType;
+import org.mynion.movies.enums.ScoreType;
 
 import java.math.BigDecimal;
 

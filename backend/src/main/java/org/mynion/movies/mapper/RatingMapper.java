@@ -3,8 +3,8 @@ package org.mynion.movies.mapper;
 
 import org.mynion.movies.dto.rating.RatingResponseDto;
 import org.mynion.movies.dto.rating.RatingScoreResponseDto;
-import org.mynion.movies.model.Rating;
-import org.mynion.movies.model.RatingScore;
+import org.mynion.movies.entity.Rating;
+import org.mynion.movies.entity.RatingScore;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;

@@ -1,6 +1,6 @@
 package org.mynion.movies.repository;
 
-import org.mynion.movies.model.Rating;
+import org.mynion.movies.entity.Rating;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
