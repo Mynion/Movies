@@ -4,10 +4,12 @@ package org.mynion.movies.service;
 import org.mynion.movies.dto.rating.CreateRatingRequestDto;
 import org.mynion.movies.dto.rating.CreateRatingScoreDto;
 import org.mynion.movies.dto.rating.RatingResponseDto;
+import org.mynion.movies.dto.rating.UpdateRatingRequestDto;
 import org.mynion.movies.entity.MediaItem;
 import org.mynion.movies.entity.Rating;
 import org.mynion.movies.entity.RatingScore;
 import org.mynion.movies.entity.User;
+import org.mynion.movies.exception.RatingAccessDeniedException;
 import org.mynion.movies.repository.MediaItemRepository;
 import org.mynion.movies.enums.MediaType;
 import org.mynion.movies.enums.ScoreType;
@@ -142,5 +144,52 @@ public class RatingService {
                 .orElseThrow(RatingNotFoundException::new);
 
         return ratingMapper.toDto(rating);
+    }
+
+
+    @Transactional
+    public RatingResponseDto updateRating(
+            Long ratingId,
+            UpdateRatingRequestDto request,
+            Long userId
+    ) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(RatingNotFoundException::new);
+
+        if (!rating.getUser().getId().equals(userId)) {
+            throw new RatingAccessDeniedException();
+        }
+
+        rating.setValue(request.value());
+
+        rating.getScores().clear();
+
+        for (CreateRatingScoreDto scoreDto : request.scores()) {
+            validateScore(scoreDto);
+
+            RatingScore score = new RatingScore();
+            score.setScoreType(scoreDto.scoreType());
+            score.setScore(scoreDto.score());
+            score.setToAverage(scoreDto.toAverage());
+            score.setCustomName(scoreDto.customName());
+
+            rating.addScore(score);
+        }
+
+        ratingRepository.flush();
+
+        return ratingMapper.toDto(rating);
+    }
+
+    @Transactional
+    public void deleteRating(Long ratingId, Long userId) {
+        Rating rating = ratingRepository.findById(ratingId)
+                .orElseThrow(RatingNotFoundException::new);
+
+        if (!rating.getUser().getId().equals(userId)) {
+            throw new RatingAccessDeniedException();
+        }
+
+        ratingRepository.delete(rating);
     }
 }

@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import org.mynion.movies.dto.rating.CreateRatingRequestDto;
 import org.mynion.movies.dto.rating.RatingResponseDto;
+import org.mynion.movies.dto.rating.UpdateRatingRequestDto;
 import org.mynion.movies.entity.User;
 import org.mynion.movies.repository.UserRepo;
 import org.mynion.movies.service.RatingService;
@@ -68,4 +69,34 @@ public class RatingController {
     ) {
         return ratingService.getRating(id);
     }
+
+
+    @PutMapping("/{id}")
+    public RatingResponseDto updateRating(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody UpdateRatingRequestDto request,
+            Authentication authentication
+    ) {
+        User user = userRepo.findByUsername(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Nie znaleziono użytkownika."
+                ));
+
+        return ratingService.updateRating(id, request, user.getId());
+    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteRating(
+            @PathVariable @Positive Long id,
+            Authentication authentication
+    ) {
+        User user = userRepo.findByUsername(authentication.getName())
+                .orElseThrow(() -> new IllegalArgumentException(
+                        "Nie znaleziono użytkownika."
+                ));
+
+        ratingService.deleteRating(id, user.getId());
+    }
+
 }

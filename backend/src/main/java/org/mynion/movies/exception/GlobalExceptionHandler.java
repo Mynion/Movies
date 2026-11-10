@@ -123,4 +123,11 @@ public class GlobalExceptionHandler {
     ) {
         return buildError(HttpStatus.NOT_FOUND, ex.getMessage());
     }
+
+    @ExceptionHandler(RatingAccessDeniedException.class)
+    public ResponseEntity<ApiErrorDto> handleRatingAccessDenied(
+            RatingAccessDeniedException ex
+    ) {
+        return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
+    }
 }
