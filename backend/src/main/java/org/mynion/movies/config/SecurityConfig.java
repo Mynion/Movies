@@ -86,7 +86,8 @@ public class SecurityConfig {
                                 "/api/movies/**",
                                 "/api/series/**",
                                 "/api/genres",
-                                "/api/genres/**"
+                                "/api/genres/**",
+                                "/api/ratings/media"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

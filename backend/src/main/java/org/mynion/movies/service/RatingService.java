@@ -8,6 +8,7 @@ import org.mynion.movies.model.MediaItem;
 import org.mynion.movies.model.Rating;
 import org.mynion.movies.model.RatingScore;
 import org.mynion.movies.model.User;
+import org.mynion.movies.repository.MediaItemRepository;
 import org.mynion.movies.util.MediaType;
 import org.mynion.movies.util.ScoreType;
 import org.mynion.movies.exception.RatingAlreadyExistsException;
@@ -17,6 +18,8 @@ import org.mynion.movies.repository.UserRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 public class RatingService {
 
@@ -24,17 +27,20 @@ public class RatingService {
     private final UserRepo userRepo;
     private final MediaItemService mediaItemService;
     private final RatingMapper ratingMapper;
+    private final MediaItemRepository mediaItemRepository;
 
     public RatingService(
             RatingRepository ratingRepository,
             UserRepo userRepo,
             MediaItemService mediaItemService,
-            RatingMapper ratingMapper
+            RatingMapper ratingMapper,
+            MediaItemRepository mediaItemRepository
     ) {
         this.ratingRepository = ratingRepository;
         this.userRepo = userRepo;
         this.mediaItemService = mediaItemService;
         this.ratingMapper = ratingMapper;
+        this.mediaItemRepository = mediaItemRepository;
     }
 
     @Transactional
@@ -104,4 +110,29 @@ public class RatingService {
             );
         }
     }
+
+
+    @Transactional(readOnly = true)
+    public List<RatingResponseDto> getUserRatings(Long userId) {
+        return ratingRepository.findByUserId(userId)
+                .stream()
+                .map(ratingMapper::toDto)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<RatingResponseDto> getMediaRatings(
+            MediaType mediaType,
+            Long tmdbId
+    ) {
+        return mediaItemRepository
+                .findByMediaTypeAndTmdbId(mediaType, tmdbId)
+                .map(mediaItem -> ratingRepository
+                        .findByMediaItemId(mediaItem.getId())
+                        .stream()
+                        .map(ratingMapper::toDto)
+                        .toList())
+                .orElse(List.of());
+    }
+
 }
