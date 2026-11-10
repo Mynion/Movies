@@ -3,15 +3,17 @@ package org.mynion.movies.service;
 
 import org.mynion.movies.dto.rating.CreateRatingRequestDto;
 import org.mynion.movies.dto.rating.CreateRatingScoreDto;
-import org.mynion.movies.exception.RatingAlreadyExistsException;
+import org.mynion.movies.dto.rating.RatingResponseDto;
 import org.mynion.movies.model.MediaItem;
 import org.mynion.movies.model.Rating;
 import org.mynion.movies.model.RatingScore;
 import org.mynion.movies.model.User;
-import org.mynion.movies.repository.RatingRepository;
-import org.mynion.movies.repository.UserRepo;
 import org.mynion.movies.util.MediaType;
 import org.mynion.movies.util.ScoreType;
+import org.mynion.movies.exception.RatingAlreadyExistsException;
+import org.mynion.movies.mapper.RatingMapper;
+import org.mynion.movies.repository.RatingRepository;
+import org.mynion.movies.repository.UserRepo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,29 +23,35 @@ public class RatingService {
     private final RatingRepository ratingRepository;
     private final UserRepo userRepo;
     private final MediaItemService mediaItemService;
+    private final RatingMapper ratingMapper;
 
     public RatingService(
             RatingRepository ratingRepository,
             UserRepo userRepo,
-            MediaItemService mediaItemService
+            MediaItemService mediaItemService,
+            RatingMapper ratingMapper
     ) {
         this.ratingRepository = ratingRepository;
         this.userRepo = userRepo;
         this.mediaItemService = mediaItemService;
+        this.ratingMapper = ratingMapper;
     }
 
     @Transactional
-    public Rating createRating(CreateRatingRequestDto request, Long userId) {
+    public RatingResponseDto createRating(
+            CreateRatingRequestDto request,
+            Long userId
+    ) {
         if (request.mediaType() != MediaType.MOVIE
                 && request.mediaType() != MediaType.TV_SERIES) {
             throw new IllegalArgumentException(
-                    "Rating this media type is not supported yet"
+                    "Ten typ produkcji nie jest jeszcze obsługiwany."
             );
         }
 
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "User not found"
+                        "Nie znaleziono użytkownika."
                 ));
 
         MediaItem mediaItem = mediaItemService.findOrCreate(
@@ -52,7 +60,8 @@ public class RatingService {
         );
 
         if (ratingRepository.existsByUserIdAndMediaItemId(
-                userId, mediaItem.getId()
+                userId,
+                mediaItem.getId()
         )) {
             throw new RatingAlreadyExistsException();
         }
@@ -66,30 +75,32 @@ public class RatingService {
             for (CreateRatingScoreDto scoreDto : request.scores()) {
                 validateScore(scoreDto);
 
-                RatingScore ratingScore = new RatingScore();
-                ratingScore.setScoreType(scoreDto.scoreType());
-                ratingScore.setScore(scoreDto.score());
-                ratingScore.setToAverage(scoreDto.toAverage());
-                ratingScore.setCustomName(scoreDto.customName());
+                RatingScore score = new RatingScore();
+                score.setScoreType(scoreDto.scoreType());
+                score.setScore(scoreDto.score());
+                score.setToAverage(scoreDto.toAverage());
+                score.setCustomName(scoreDto.customName());
 
-                rating.addScore(ratingScore);
+                rating.addScore(score);
             }
         }
 
-        return ratingRepository.save(rating);
+        Rating savedRating = ratingRepository.saveAndFlush(rating);
+
+        return ratingMapper.toDto(savedRating);
     }
 
-    private void validateScore(CreateRatingScoreDto scoreDto) {
-        if (scoreDto.scoreType() == ScoreType.CUSTOM_SCORE) {
-            if (scoreDto.customName() == null
-                    || scoreDto.customName().isBlank()) {
+    private void validateScore(CreateRatingScoreDto dto) {
+        if (dto.scoreType() == ScoreType.CUSTOM_SCORE) {
+            if (dto.customName() == null
+                    || dto.customName().isBlank()) {
                 throw new IllegalArgumentException(
-                        "Custom score must have a name"
+                        "Własne kryterium oceny musi mieć nazwę."
                 );
             }
-        } else if (scoreDto.customName() != null) {
+        } else if (dto.customName() != null) {
             throw new IllegalArgumentException(
-                    "Only custom scores can have a custom name"
+                    "Nazwa własna jest dozwolona tylko dla kryteriów niestandardowych."
             );
         }
     }
