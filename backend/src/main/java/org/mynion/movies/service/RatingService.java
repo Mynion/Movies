@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.mynion.movies.exception.RatingNotFoundException;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class RatingService {
@@ -150,20 +151,79 @@ public class RatingService {
                 .toList();
     }
 
+
     @Transactional(readOnly = true)
     public List<RatingResponseDto> getMediaRatings(
             MediaType mediaType,
-            Long tmdbId
+            Long tmdbId,
+            Integer seasonNumber,
+            Integer episodeNumber
     ) {
-        return mediaItemRepository
-                .findByMediaTypeAndTmdbId(mediaType, tmdbId)
-                .map(mediaItem -> ratingRepository
-                        .findByMediaItemId(mediaItem.getId())
+        Optional<MediaItem> mediaItem;
+
+        switch (mediaType) {
+            case MOVIE, TV_SERIES -> {
+                if (seasonNumber != null || episodeNumber != null) {
+                    throw new IllegalArgumentException(
+                            "Film lub serial nie może mieć numeru sezonu ani odcinka."
+                    );
+                }
+
+                mediaItem = mediaItemRepository
+                        .findByMediaTypeAndTmdbId(mediaType, tmdbId);
+            }
+
+            case SEASON -> {
+                if (seasonNumber == null || episodeNumber != null) {
+                    throw new IllegalArgumentException(
+                            "Podaj numer sezonu bez numeru odcinka."
+                    );
+                }
+
+                mediaItem = mediaItemRepository
+                        .findByMediaTypeAndTmdbId(MediaType.TV_SERIES, tmdbId)
+                        .flatMap(series -> mediaItemRepository
+                                .findByParentIdAndSeasonNumber(
+                                        series.getId(),
+                                        seasonNumber
+                                ));
+            }
+
+            case EPISODE -> {
+                if (seasonNumber == null || episodeNumber == null) {
+                    throw new IllegalArgumentException(
+                            "Podaj numer sezonu i odcinka."
+                    );
+                }
+
+                mediaItem = mediaItemRepository
+                        .findByMediaTypeAndTmdbId(MediaType.TV_SERIES, tmdbId)
+                        .flatMap(series -> mediaItemRepository
+                                .findByParentIdAndSeasonNumber(
+                                        series.getId(),
+                                        seasonNumber
+                                ))
+                        .flatMap(season -> mediaItemRepository
+                                .findByParentIdAndEpisodeNumber(
+                                        season.getId(),
+                                        episodeNumber
+                                ));
+            }
+
+            default -> throw new IllegalArgumentException(
+                    "Nieobsługiwany typ produkcji."
+            );
+        }
+
+        return mediaItem
+                .map(item -> ratingRepository
+                        .findByMediaItemId(item.getId())
                         .stream()
                         .map(ratingMapper::toDto)
                         .toList())
                 .orElse(List.of());
     }
+
 
     @Transactional(readOnly = true)
     public RatingResponseDto getRating(Long id) {

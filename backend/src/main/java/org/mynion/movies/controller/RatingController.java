@@ -2,6 +2,7 @@
 package org.mynion.movies.controller;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import org.mynion.movies.dto.rating.CreateRatingRequestDto;
 import org.mynion.movies.dto.rating.RatingResponseDto;
@@ -58,9 +59,16 @@ public class RatingController {
     @GetMapping("/media")
     public List<RatingResponseDto> getMediaRatings(
             @RequestParam @Positive Long tmdbId,
-            @RequestParam MediaType mediaType
+            @RequestParam MediaType mediaType,
+            @RequestParam(required = false) @Min(0) Integer seasonNumber,
+            @RequestParam(required = false) @Min(1) Integer episodeNumber
     ) {
-        return ratingService.getMediaRatings(mediaType, tmdbId);
+        return ratingService.getMediaRatings(
+                mediaType,
+                tmdbId,
+                seasonNumber,
+                episodeNumber
+        );
     }
 
     @GetMapping("/{id}")
