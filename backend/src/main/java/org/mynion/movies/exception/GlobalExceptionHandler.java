@@ -1,8 +1,8 @@
+
 package org.mynion.movies.exception;
 
 import jakarta.validation.ConstraintViolationException;
 import org.mynion.movies.dto.ApiErrorDto;
-import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.AuthenticationException;
@@ -13,62 +13,58 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
-import java.util.Map;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidation(
-            MethodArgumentNotValidException exception) {
-
-        String message = exception.getBindingResult()
+    public ResponseEntity<ApiErrorDto> handleValidation(
+            MethodArgumentNotValidException ex
+    ) {
+        String message = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
                 .findFirst()
-                .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .orElse("Invalid input");
+                .map(error -> error.getField() + ": " + error.getDefaultMessage())
+                .orElse("Nieprawidłowe dane żądania.");
 
-        return ResponseEntity.badRequest()
-                .body(Map.of("error", message));
+        return buildError(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(UserAlreadyExistsException.class)
-    public ResponseEntity<Map<String, String>> handleUserAlreadyExists(
-            UserAlreadyExistsException exception) {
-
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("error", exception.getMessage()));
+    public ResponseEntity<ApiErrorDto> handleUserAlreadyExists(
+            UserAlreadyExistsException ex
+    ) {
+        return buildError(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    public ResponseEntity<Map<String, String>> handleAuthentication(
-            AuthenticationException exception) {
-
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                .body(Map.of("error", "Invalid username or password"));
+    public ResponseEntity<ApiErrorDto> handleAuthentication(
+            AuthenticationException ex
+    ) {
+        return buildError(
+                HttpStatus.UNAUTHORIZED,
+                "Nieprawidłowa nazwa użytkownika lub hasło."
+        );
     }
 
     @ExceptionHandler(HttpClientErrorException.NotFound.class)
     public ResponseEntity<ApiErrorDto> handleNotFound(
             HttpClientErrorException.NotFound ex
     ) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ApiErrorDto(
-                        404,
-                        "Nie znaleziono wskazanej produkcji, sezonu lub odcinka."
-                ));
+        return buildError(
+                HttpStatus.NOT_FOUND,
+                "Nie znaleziono wskazanej produkcji, sezonu lub odcinka."
+        );
     }
 
     @ExceptionHandler(RestClientException.class)
     public ResponseEntity<ApiErrorDto> handleTmdbError(
             RestClientException ex
     ) {
-        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
-                .body(new ApiErrorDto(
-                        502,
-                        "Nie udało się pobrać danych z TMDB."
-                ));
+        return buildError(
+                HttpStatus.BAD_GATEWAY,
+                "Nie udało się pobrać danych z TMDB."
+        );
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
@@ -78,23 +74,60 @@ public class GlobalExceptionHandler {
         String message = ex.getConstraintViolations()
                 .stream()
                 .map(violation ->
-                        violation.getPropertyPath() + ": " +
-                                violation.getMessage())
+                        violation.getPropertyPath() + ": "
+                                + violation.getMessage())
                 .findFirst()
                 .orElse("Nieprawidłowe parametry żądania.");
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiErrorDto(400, message));
+        return buildError(HttpStatus.BAD_REQUEST, message);
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
     public ResponseEntity<ApiErrorDto> handleTypeMismatch(
             MethodArgumentTypeMismatchException ex
     ) {
-        return ResponseEntity.badRequest()
-                .body(new ApiErrorDto(
-                        400,
-                        "Nieprawidłowa wartość parametru: " + ex.getName()
-                ));
+        return buildError(
+                HttpStatus.BAD_REQUEST,
+                "Nieprawidłowa wartość parametru: " + ex.getName()
+        );
+    }
+
+    @ExceptionHandler(RatingAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorDto> handleRatingAlreadyExists(
+            RatingAlreadyExistsException ex
+    ) {
+        return buildError(HttpStatus.CONFLICT, ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiErrorDto> handleIllegalArgument(
+            IllegalArgumentException ex
+    ) {
+        return buildError(
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage()
+        );
+    }
+
+    private ResponseEntity<ApiErrorDto> buildError(
+            HttpStatus status,
+            String message
+    ) {
+        return ResponseEntity.status(status)
+                .body(new ApiErrorDto(status.value(), message));
+    }
+
+    @ExceptionHandler(RatingNotFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleRatingNotFound(
+            RatingNotFoundException ex
+    ) {
+        return buildError(HttpStatus.NOT_FOUND, ex.getMessage());
+    }
+
+    @ExceptionHandler(RatingAccessDeniedException.class)
+    public ResponseEntity<ApiErrorDto> handleRatingAccessDenied(
+            RatingAccessDeniedException ex
+    ) {
+        return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
     }
 }

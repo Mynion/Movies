@@ -2,7 +2,7 @@ package org.mynion.movies.controller;
 
 import org.mynion.movies.dto.tmdb.GenresDto;
 import org.mynion.movies.service.TmdbService;
-import org.mynion.movies.util.MediaType;
+import org.mynion.movies.enums.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
