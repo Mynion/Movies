@@ -1,7 +1,7 @@
 package org.mynion.movies.service;
 
 import org.mynion.movies.dto.tmdb.*;
-import org.mynion.movies.util.MediaType;
+import org.mynion.movies.enums.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
