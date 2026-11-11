@@ -1,11 +1,12 @@
 
 import { useState } from "react";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router";
 import { login as loginUser } from "../services/auth";
 import Navbar from "../components/Navbar.jsx";
 
 function Login() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [login, setLogin] = useState("");
     const [password, setPassword] = useState("");
@@ -21,7 +22,7 @@ function Login() {
 
         try {
             await loginUser(login, password);
-            navigate("/");
+            navigate(location.state?.from || "/");
         } catch (err) {
             setError(err.message);
         } finally {
