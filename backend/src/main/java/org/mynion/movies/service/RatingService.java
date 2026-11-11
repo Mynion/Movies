@@ -1,10 +1,7 @@
 
 package org.mynion.movies.service;
 
-import org.mynion.movies.dto.rating.CreateRatingRequestDto;
-import org.mynion.movies.dto.rating.CreateRatingScoreDto;
-import org.mynion.movies.dto.rating.RatingResponseDto;
-import org.mynion.movies.dto.rating.UpdateRatingRequestDto;
+import org.mynion.movies.dto.rating.*;
 import org.mynion.movies.entity.MediaItem;
 import org.mynion.movies.entity.Rating;
 import org.mynion.movies.entity.RatingScore;
@@ -17,10 +14,13 @@ import org.mynion.movies.exception.RatingAlreadyExistsException;
 import org.mynion.movies.mapper.RatingMapper;
 import org.mynion.movies.repository.RatingRepository;
 import org.mynion.movies.repository.UserRepo;
+import org.mynion.movies.repository.projection.RatingStatsProjection;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.mynion.movies.exception.RatingNotFoundException;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -159,63 +159,7 @@ public class RatingService {
             Integer seasonNumber,
             Integer episodeNumber
     ) {
-        Optional<MediaItem> mediaItem;
-
-        switch (mediaType) {
-            case MOVIE, TV_SERIES -> {
-                if (seasonNumber != null || episodeNumber != null) {
-                    throw new IllegalArgumentException(
-                            "Film lub serial nie może mieć numeru sezonu ani odcinka."
-                    );
-                }
-
-                mediaItem = mediaItemRepository
-                        .findByMediaTypeAndTmdbId(mediaType, tmdbId);
-            }
-
-            case SEASON -> {
-                if (seasonNumber == null || episodeNumber != null) {
-                    throw new IllegalArgumentException(
-                            "Podaj numer sezonu bez numeru odcinka."
-                    );
-                }
-
-                mediaItem = mediaItemRepository
-                        .findByMediaTypeAndTmdbId(MediaType.TV_SERIES, tmdbId)
-                        .flatMap(series -> mediaItemRepository
-                                .findByParentIdAndSeasonNumber(
-                                        series.getId(),
-                                        seasonNumber
-                                ));
-            }
-
-            case EPISODE -> {
-                if (seasonNumber == null || episodeNumber == null) {
-                    throw new IllegalArgumentException(
-                            "Podaj numer sezonu i odcinka."
-                    );
-                }
-
-                mediaItem = mediaItemRepository
-                        .findByMediaTypeAndTmdbId(MediaType.TV_SERIES, tmdbId)
-                        .flatMap(series -> mediaItemRepository
-                                .findByParentIdAndSeasonNumber(
-                                        series.getId(),
-                                        seasonNumber
-                                ))
-                        .flatMap(season -> mediaItemRepository
-                                .findByParentIdAndEpisodeNumber(
-                                        season.getId(),
-                                        episodeNumber
-                                ));
-            }
-
-            default -> throw new IllegalArgumentException(
-                    "Nieobsługiwany typ produkcji."
-            );
-        }
-
-        return mediaItem
+        return findMediaItem(mediaType, tmdbId, seasonNumber, episodeNumber)
                 .map(item -> ratingRepository
                         .findByMediaItemId(item.getId())
                         .stream()
@@ -279,4 +223,91 @@ public class RatingService {
 
         ratingRepository.delete(rating);
     }
+
+    private Optional<MediaItem> findMediaItem(
+            MediaType mediaType,
+            Long tmdbId,
+            Integer seasonNumber,
+            Integer episodeNumber
+    ) {
+        return switch (mediaType) {
+            case MOVIE, TV_SERIES -> {
+                if (seasonNumber != null || episodeNumber != null) {
+                    throw new IllegalArgumentException(
+                            "Film lub serial nie może mieć numeru sezonu ani odcinka."
+                    );
+                }
+
+                yield mediaItemRepository.findByMediaTypeAndTmdbId(
+                        mediaType, tmdbId
+                );
+            }
+
+            case SEASON -> {
+                if (seasonNumber == null || episodeNumber != null) {
+                    throw new IllegalArgumentException(
+                            "Podaj numer sezonu bez numeru odcinka."
+                    );
+                }
+
+                yield mediaItemRepository
+                        .findByMediaTypeAndTmdbId(MediaType.TV_SERIES, tmdbId)
+                        .flatMap(series -> mediaItemRepository
+                                .findByParentIdAndSeasonNumber(
+                                        series.getId(), seasonNumber
+                                ));
+            }
+
+            case EPISODE -> {
+                if (seasonNumber == null || episodeNumber == null) {
+                    throw new IllegalArgumentException(
+                            "Podaj numer sezonu i odcinka."
+                    );
+                }
+
+                yield mediaItemRepository
+                        .findByMediaTypeAndTmdbId(MediaType.TV_SERIES, tmdbId)
+                        .flatMap(series -> mediaItemRepository
+                                .findByParentIdAndSeasonNumber(
+                                        series.getId(), seasonNumber
+                                ))
+                        .flatMap(season -> mediaItemRepository
+                                .findByParentIdAndEpisodeNumber(
+                                        season.getId(), episodeNumber
+                                ));
+            }
+        };
+    }
+
+
+    @Transactional(readOnly = true)
+    public RatingStatsDto getMediaRatingStats(
+            MediaType mediaType,
+            Long tmdbId,
+            Integer seasonNumber,
+            Integer episodeNumber
+    ) {
+        Optional<MediaItem> mediaItem = findMediaItem(
+                mediaType, tmdbId, seasonNumber, episodeNumber
+        );
+
+        if (mediaItem.isEmpty()) {
+            return new RatingStatsDto(null, 0);
+        }
+
+        RatingStatsProjection stats = ratingRepository.getRatingStats(
+                mediaItem.get().getId()
+        );
+
+        BigDecimal averageRating = stats.getAverageRating() == null
+                ? null
+                : BigDecimal.valueOf(stats.getAverageRating())
+                .setScale(2, RoundingMode.HALF_UP);
+
+        return new RatingStatsDto(
+                averageRating,
+                stats.getRatingsCount()
+        );
+    }
+
 }

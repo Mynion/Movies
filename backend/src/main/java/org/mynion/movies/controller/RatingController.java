@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 import org.mynion.movies.dto.rating.CreateRatingRequestDto;
 import org.mynion.movies.dto.rating.RatingResponseDto;
+import org.mynion.movies.dto.rating.RatingStatsDto;
 import org.mynion.movies.dto.rating.UpdateRatingRequestDto;
 import org.mynion.movies.entity.User;
 import org.mynion.movies.repository.UserRepo;
@@ -107,4 +108,18 @@ public class RatingController {
         ratingService.deleteRating(id, user.getId());
     }
 
+    @GetMapping("/media/stats")
+    public RatingStatsDto getMediaRatingStats(
+            @RequestParam @Positive Long tmdbId,
+            @RequestParam MediaType mediaType,
+            @RequestParam(required = false) @Min(0) Integer seasonNumber,
+            @RequestParam(required = false) @Min(1) Integer episodeNumber
+    ) {
+        return ratingService.getMediaRatingStats(
+                mediaType,
+                tmdbId,
+                seasonNumber,
+                episodeNumber
+        );
+    }
 }

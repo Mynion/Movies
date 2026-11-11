@@ -94,7 +94,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 HttpMethod.GET,
                                 "/api/ratings/media",
-                                "/api/ratings/{id}"
+                                "/api/ratings/{id}",
+                                "/api/ratings/media/stats"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )
