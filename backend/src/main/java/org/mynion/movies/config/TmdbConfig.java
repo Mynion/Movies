@@ -18,4 +18,5 @@ public class TmdbConfig {
                 .defaultHeader("accept", "application/json")
                 .build();
     }
+
 }

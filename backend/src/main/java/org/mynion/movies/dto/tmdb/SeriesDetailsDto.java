@@ -29,5 +29,7 @@ public record SeriesDetailsDto(
         @JsonProperty("vote_average")
         Double voteAverage,
 
-        CreditsDto credits
+        CreditsDto credits,
+
+        List<SeasonDetailsDto> seasons
 ) {}
