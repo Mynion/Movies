@@ -1,5 +1,8 @@
 package org.mynion.movies.service;
 
+import java.util.List;
+import org.mynion.movies.dto.tmdb.SeasonDetailsDto;
+import org.mynion.movies.dto.tmdb.SeriesDetailsDto;
 import org.mynion.movies.dto.tmdb.*;
 import org.mynion.movies.util.MediaType;
 import org.springframework.stereotype.Service;
@@ -82,17 +85,55 @@ public class TmdbService {
                 .body(SeriesSearchResponseDto.class);
     }
 
+
     public SeriesDetailsDto getSeriesDetails(Long id) {
-        return tmdbRestClient.get()
+
+        SeriesDetailsDto series = tmdbRestClient.get()
                 .uri(uriBuilder ->
                         uriBuilder
                                 .path("/tv/{id}")
                                 .queryParam("language", "pl-PL")
+                                .queryParam("append_to_response", "credits")
                                 .build(id))
                 .retrieve()
                 .body(SeriesDetailsDto.class);
 
+        if (series == null || series.seasons() == null) {
+            return series;
+        }
+
+        List<SeasonDetailsDto> seasons = series.seasons().stream()
+                .map(season -> getSeasonDetails(id, season.seasonNumber()))
+                .toList();
+
+        return new SeriesDetailsDto(
+                series.id(),
+                series.name(),
+                series.overview(),
+                series.posterPath(),
+                series.backdropPath(),
+                series.firstAirDate(),
+                series.genres(),
+                series.numberOfSeasons(),
+                series.numberOfEpisodes(),
+                series.voteAverage(),
+                series.credits(),
+                seasons
+        );
     }
+
+    public SeasonDetailsDto getSeasonDetails(Long seriesId, Integer seasonNumber) {
+
+        return tmdbRestClient.get()
+                .uri(uriBuilder ->
+                        uriBuilder
+                                .path("/tv/{id}/season/{seasonNumber}")
+                                .queryParam("language", "pl-PL")
+                                .build(seriesId, seasonNumber))
+                .retrieve()
+                .body(SeasonDetailsDto.class);
+    }
+
 
     public SeriesSearchResponseDto getSeries(int page, Integer genreId) {
         return tmdbRestClient.get()
@@ -109,19 +150,6 @@ public class TmdbService {
                 })
                 .retrieve()
                 .body(SeriesSearchResponseDto.class);
-    }
-
-    public SeasonDetailsDto getSeasonDetails(
-            Long seriesId,
-            Integer seasonNumber
-    ) {
-        return tmdbRestClient.get()
-                .uri(uriBuilder ->
-                        uriBuilder.path("/tv/{series_id}/season/{season_number}")
-                                .queryParam("language", "pl-PL")
-                                .build(seriesId, seasonNumber))
-                .retrieve()
-                .body(SeasonDetailsDto.class);
     }
 
     public EpisodeDto getEpisodeDetails(
