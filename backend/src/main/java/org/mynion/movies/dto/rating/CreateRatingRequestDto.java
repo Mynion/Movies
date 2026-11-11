@@ -16,6 +16,12 @@ public record CreateRatingRequestDto(
         @NotNull
         MediaType mediaType,
 
+        @Min(0)
+        Integer seasonNumber,
+
+        @Min(1)
+        Integer episodeNumber,
+
         @NotNull
         @DecimalMin("1.0")
         @DecimalMax("10.0")
@@ -23,5 +29,6 @@ public record CreateRatingRequestDto(
         BigDecimal value,
 
         @Size(max = 10)
-        List<@Valid CreateRatingScoreDto> scores
-) {}
+        List<@NotNull @Valid CreateRatingScoreDto> scores
+) {
+}

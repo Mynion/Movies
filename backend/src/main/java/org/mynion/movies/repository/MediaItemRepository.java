@@ -12,4 +12,14 @@ public interface MediaItemRepository extends JpaRepository<MediaItem, Long> {
             MediaType mediaType,
             Long tmdbId
     );
+
+    Optional<MediaItem> findByParentIdAndSeasonNumber(
+            Long parentId,
+            Integer seasonNumber
+    );
+
+    Optional<MediaItem> findByParentIdAndEpisodeNumber(
+            Long parentId,
+            Integer episodeNumber
+    );
 }

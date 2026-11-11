@@ -3,6 +3,7 @@ package org.mynion.movies.mapper;
 
 import org.mynion.movies.dto.rating.RatingResponseDto;
 import org.mynion.movies.dto.rating.RatingScoreResponseDto;
+import org.mynion.movies.entity.MediaItem;
 import org.mynion.movies.entity.Rating;
 import org.mynion.movies.entity.RatingScore;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,8 @@ import java.util.List;
 public class RatingMapper {
 
     public RatingResponseDto toDto(Rating rating) {
+        MediaItem mediaItem = rating.getMediaItem();
+
         List<RatingScoreResponseDto> scores = rating.getScores()
                 .stream()
                 .map(this::toScoreDto)
@@ -22,9 +25,11 @@ public class RatingMapper {
 
         return new RatingResponseDto(
                 rating.getId(),
-                rating.getMediaItem().getId(),
-                rating.getMediaItem().getTmdbId(),
-                rating.getMediaItem().getMediaType(),
+                mediaItem.getId(),
+                getTmdbId(mediaItem),
+                mediaItem.getMediaType(),
+                mediaItem.getSeasonNumber(),
+                mediaItem.getEpisodeNumber(),
                 rating.getValue(),
                 calculateSuggestedAverage(rating.getScores()),
                 rating.getCreatedAt(),
@@ -40,6 +45,19 @@ public class RatingMapper {
                 score.isToAverage(),
                 score.getCustomName()
         );
+    }
+
+    private Long getTmdbId(MediaItem mediaItem) {
+        return switch (mediaItem.getMediaType()) {
+            case MOVIE, TV_SERIES ->
+                    mediaItem.getTmdbId();
+
+            case SEASON ->
+                    mediaItem.getParent().getTmdbId();
+
+            case EPISODE ->
+                    mediaItem.getParent().getParent().getTmdbId();
+        };
     }
 
     private BigDecimal calculateSuggestedAverage(

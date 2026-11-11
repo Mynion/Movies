@@ -51,12 +51,7 @@ public class RatingService {
             CreateRatingRequestDto request,
             Long userId
     ) {
-        if (request.mediaType() != MediaType.MOVIE
-                && request.mediaType() != MediaType.TV_SERIES) {
-            throw new IllegalArgumentException(
-                    "Ten typ produkcji nie jest jeszcze obsługiwany."
-            );
-        }
+        validateMediaType(request);
 
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException(
@@ -65,7 +60,9 @@ public class RatingService {
 
         MediaItem mediaItem = mediaItemService.findOrCreate(
                 request.mediaType(),
-                request.tmdbId()
+                request.tmdbId(),
+                request.seasonNumber(),
+                request.episodeNumber()
         );
 
         if (ratingRepository.existsByUserIdAndMediaItemId(
@@ -97,6 +94,36 @@ public class RatingService {
         Rating savedRating = ratingRepository.saveAndFlush(rating);
 
         return ratingMapper.toDto(savedRating);
+    }
+
+
+    private void validateMediaType(CreateRatingRequestDto request) {
+        switch (request.mediaType()) {
+            case MOVIE, TV_SERIES -> {
+                if (request.seasonNumber() != null
+                        || request.episodeNumber() != null) {
+                    throw new IllegalArgumentException(
+                            "Film lub serial nie może mieć numeru sezonu ani odcinka."
+                    );
+                }
+            }
+            case SEASON -> {
+                if (request.seasonNumber() == null
+                        || request.episodeNumber() != null) {
+                    throw new IllegalArgumentException(
+                            "Ocena sezonu wymaga numeru sezonu i nie może zawierać numeru odcinka."
+                    );
+                }
+            }
+            case EPISODE -> {
+                if (request.seasonNumber() == null
+                        || request.episodeNumber() == null) {
+                    throw new IllegalArgumentException(
+                            "Ocena odcinka wymaga numeru sezonu i odcinka."
+                    );
+                }
+            }
+        }
     }
 
     private void validateScore(CreateRatingScoreDto dto) {

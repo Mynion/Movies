@@ -30,16 +30,16 @@ public class RatingController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createRating(
+    public RatingResponseDto createRating(
             @Valid @RequestBody CreateRatingRequestDto request,
             Authentication authentication
     ) {
         User user = userRepo.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalArgumentException(
-                        "Nie znaleziono użytkownika"
+                        "Nie znaleziono użytkownika."
                 ));
 
-        ratingService.createRating(request, user.getId());
+        return ratingService.createRating(request, user.getId());
     }
 
 

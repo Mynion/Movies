@@ -12,6 +12,9 @@ public record RatingResponseDto(
         Long mediaItemId,
         Long tmdbId,
         MediaType mediaType,
+
+        Integer seasonNumber,
+        Integer episodeNumber,
         BigDecimal value,
         BigDecimal suggestedAverage,
         Instant createdAt,
