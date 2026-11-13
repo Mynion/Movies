@@ -130,4 +130,44 @@ public class GlobalExceptionHandler {
     ) {
         return buildError(HttpStatus.FORBIDDEN, ex.getMessage());
     }
+
+    @ExceptionHandler(ReviewAlreadyExistsException.class)
+    public ResponseEntity<ApiErrorDto> handleReviewAlreadyExists(
+            ReviewAlreadyExistsException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ApiErrorDto(409, ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReviewNotFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleReviewNotFound(
+            ReviewNotFoundException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiErrorDto(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(ReviewAccessDeniedException.class)
+    public ResponseEntity<ApiErrorDto> handleReviewAccessDenied(
+            ReviewAccessDeniedException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiErrorDto(403, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidMediaItemException.class)
+    public ResponseEntity<ApiErrorDto> handleInvalidMediaItem(
+            InvalidMediaItemException ex
+    ) {
+        return ResponseEntity.badRequest()
+                .body(new ApiErrorDto(400, ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleUserNotFound(
+            UserNotFoundException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiErrorDto(404, ex.getMessage()));
+    }
 }

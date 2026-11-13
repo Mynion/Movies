@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.Generated;
+import org.hibernate.generator.EventType;
 import org.mynion.movies.converter.ReviewVisibilityConverter;
 import org.mynion.movies.enums.ReviewVisibility;
 
@@ -32,8 +34,13 @@ public class Review {
     @Column(name = "visibility", nullable = false, length = 20)
     private ReviewVisibility visibility = ReviewVisibility.PUBLIC;
 
-    @Column(name = "created_at", nullable = false,
-            insertable = false, updatable = false)
+    @Generated(event = EventType.INSERT)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            insertable = false,
+            updatable = false
+    )
     private Instant createdAt;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

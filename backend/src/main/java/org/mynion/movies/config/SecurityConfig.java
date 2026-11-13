@@ -1,6 +1,7 @@
 package org.mynion.movies.config;
 
 import jakarta.servlet.DispatcherType;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -97,7 +98,16 @@ public class SecurityConfig {
                                 "/api/ratings/{id}",
                                 "/api/ratings/media/stats"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/reviews/media",
+                                "/api/reviews/{id}"
+                        ).permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint((request, response, authException) ->
+                                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+                        )
                 )
                 .logout(logout -> logout
                         .logoutUrl("/api/auth/logout")
