@@ -17,4 +17,8 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
     );
 
     List<Review> findByVisibility(ReviewVisibility visibility);
+    boolean existsByUserIdAndMediaItemId(
+            Long userId,
+            Long mediaItemId
+    );
 }
