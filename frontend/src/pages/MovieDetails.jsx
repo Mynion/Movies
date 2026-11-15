@@ -46,6 +46,12 @@ function MovieDetails() {
     const [savingRating, setSavingRating] = useState(false);
     const [ratingError, setRatingError] = useState("");
     const [review, setReview] = useState("");
+    const [reviewTitle, setReviewTitle] = useState("");
+    const [reviewVisibility, setReviewVisibility] = useState("PUBLIC");
+    const [reviews, setReviews] = useState([]);
+    const [userReview, setUserReview] = useState(null);
+    const [reviewSaving, setReviewSaving] = useState(false);
+    const [reviewError, setReviewError] = useState("");
 
     const [expandedSeason, setExpandedSeason] = useState(null);
 
@@ -175,6 +181,77 @@ function MovieDetails() {
         }
 
         loadRatings();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [id, mediaType, isEpisode, seasonNumber, episodeNumber, user]);
+
+    // Pobieranie publicznych recenzji produkcji oraz recenzji zalogowanego użytkownika.
+    useEffect(() => {
+        let cancelled = false;
+
+        async function loadReviews() {
+            const params = new URLSearchParams({
+                tmdbId: id,
+                mediaType
+            });
+
+            if (isEpisode) {
+                params.set("seasonNumber", seasonNumber);
+                params.set("episodeNumber", episodeNumber);
+            }
+
+            try {
+                const publicResponse = await fetch(
+                    `${API_URL}/reviews/media?${params.toString()}`
+                );
+
+                if (!publicResponse.ok) {
+                    throw new Error("Nie udało się pobrać recenzji.");
+                }
+
+                const publicData = await publicResponse.json();
+                let matchingUserReview = null;
+
+                if (user) {
+                    const myReviewsResponse = await fetch(`${API_URL}/reviews/me`, {
+                        credentials: "include"
+                    });
+
+                    if (myReviewsResponse.ok) {
+                        const myReviews = await myReviewsResponse.json();
+                        matchingUserReview = myReviews.find((item) => {
+                            const sameMedia =
+                                String(item.tmdbId) === String(id) &&
+                                item.mediaType === mediaType;
+
+                            if (!sameMedia) return false;
+
+                            if (isEpisode) {
+                                return (
+                                    Number(item.seasonNumber) === Number(seasonNumber) &&
+                                    Number(item.episodeNumber) === Number(episodeNumber)
+                                );
+                            }
+
+                            return true;
+                        }) || null;
+                    }
+                }
+
+                if (!cancelled) {
+                    setReviews(Array.isArray(publicData) ? publicData : []);
+                    setUserReview(matchingUserReview);
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error("Nie udało się pobrać recenzji:", err);
+                }
+            }
+        }
+
+        loadReviews();
 
         return () => {
             cancelled = true;
@@ -412,11 +489,174 @@ function MovieDetails() {
         }
     }
 
-    // Wysyłanie recenzji – endpoint recenzji nie jest jeszcze podłączony.
-    function handleReviewSubmit(event) {
+    function openReviewModal() {
+        setReviewError("");
+        setReviewTitle(userReview?.title || "");
+        setReview(userReview?.content || "");
+        setReviewVisibility(userReview?.visibility || "PUBLIC");
+        setActiveModal("review");
+    }
+
+    async function refreshReviews() {
+        const params = new URLSearchParams({
+            tmdbId: id,
+            mediaType
+        });
+
+        if (isEpisode) {
+            params.set("seasonNumber", seasonNumber);
+            params.set("episodeNumber", episodeNumber);
+        }
+
+        const [publicResponse, myReviewsResponse] = await Promise.all([
+            fetch(`${API_URL}/reviews/media?${params.toString()}`),
+            fetch(`${API_URL}/reviews/me`, { credentials: "include" })
+        ]);
+
+        if (publicResponse.ok) {
+            const publicData = await publicResponse.json();
+            setReviews(Array.isArray(publicData) ? publicData : []);
+        }
+
+        if (myReviewsResponse.ok) {
+            const myReviews = await myReviewsResponse.json();
+            const matchingReview = myReviews.find((item) => {
+                const sameMedia =
+                    String(item.tmdbId) === String(id) &&
+                    item.mediaType === mediaType;
+
+                if (!sameMedia) return false;
+
+                if (isEpisode) {
+                    return (
+                        Number(item.seasonNumber) === Number(seasonNumber) &&
+                        Number(item.episodeNumber) === Number(episodeNumber)
+                    );
+                }
+
+                return true;
+            });
+
+            setUserReview(matchingReview || null);
+        }
+    }
+
+    async function handleReviewSubmit(event) {
         event.preventDefault();
-        alert("Backend recenzji nie jest jeszcze podłączony.");
-        setActiveModal(null);
+        setReviewError("");
+
+        const trimmedTitle = reviewTitle.trim();
+        const trimmedContent = review.trim();
+
+        if (!trimmedTitle) {
+            setReviewError("Podaj tytuł recenzji.");
+            return;
+        }
+
+        if (!trimmedContent) {
+            setReviewError("Treść recenzji nie może być pusta.");
+            return;
+        }
+
+        const body = {
+            title: trimmedTitle,
+            content: trimmedContent,
+            visibility: reviewVisibility
+        };
+
+        if (!userReview) {
+            body.tmdbId = Number(id);
+            body.mediaType = mediaType;
+
+            if (isEpisode) {
+                body.seasonNumber = Number(seasonNumber);
+                body.episodeNumber = Number(episodeNumber);
+            }
+        }
+
+        try {
+            setReviewSaving(true);
+
+            const response = await fetch(
+                userReview
+                    ? `${API_URL}/reviews/${userReview.id}`
+                    : `${API_URL}/reviews`,
+                {
+                    method: userReview ? "PUT" : "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                }
+            );
+
+            if (response.status === 401) {
+                navigate("/login", {
+                    state: { from: location.pathname }
+                });
+                return;
+            }
+
+            if (response.status === 409) {
+                setReviewError("Masz już recenzję tej produkcji. Odśwież stronę i spróbuj ponownie.");
+                return;
+            }
+
+            if (!response.ok) {
+                let message = "Nie udało się zapisać recenzji.";
+                try {
+                    const errorData = await response.json();
+                    message = errorData.message || errorData.error || message;
+                } catch {
+                    // Odpowiedź serwera nie zawiera JSON.
+                }
+                throw new Error(message);
+            }
+
+            const savedReview = await response.json();
+            setUserReview(savedReview);
+            setActiveModal(null);
+            await refreshReviews();
+        } catch (err) {
+            setReviewError(err.message || "Wystąpił błąd podczas zapisywania recenzji.");
+        } finally {
+            setReviewSaving(false);
+        }
+    }
+
+    async function handleReviewDelete() {
+        if (!userReview) return;
+
+        const confirmed = window.confirm("Czy na pewno chcesz usunąć swoją recenzję?");
+        if (!confirmed) return;
+
+        try {
+            setReviewSaving(true);
+            const response = await fetch(`${API_URL}/reviews/${userReview.id}`, {
+                method: "DELETE",
+                credentials: "include"
+            });
+
+            if (response.status === 401) {
+                navigate("/login", {
+                    state: { from: location.pathname }
+                });
+                return;
+            }
+
+            if (!response.ok && response.status !== 204) {
+                throw new Error("Nie udało się usunąć recenzji.");
+            }
+
+            setUserReview(null);
+            setReviewTitle("");
+            setReview("");
+            setActiveModal(null);
+            await refreshReviews();
+        } catch (err) {
+            setReviewError(err.message || "Wystąpił błąd podczas usuwania recenzji.");
+        } finally {
+            setReviewSaving(false);
+        }
     }
 
     if (loading) {
@@ -583,13 +823,6 @@ function MovieDetails() {
                                     <span>Czas trwania: {runtime} min</span>
                                 )}
 
-                                <span>
-                                    Ocena TMDB:{" "}
-                                    {voteAverage != null
-                                        ? Number(voteAverage).toFixed(1)
-                                        : "—"}
-                                    /10
-                                </span>
                             </div>
 
                             <h2 className="text-xl font-semibold mb-3">Opis</h2>
@@ -618,10 +851,16 @@ function MovieDetails() {
                                 </button>
 
                                 <button
-                                    onClick={() => requireLogin("review")}
+                                    onClick={() => {
+                                        if (!user) {
+                                            requireLogin("review");
+                                        } else {
+                                            openReviewModal();
+                                        }
+                                    }}
                                     className="bg-[#303034] hover:bg-[#414146] px-5 py-3 rounded-lg font-medium transition"
                                 >
-                                    Napisz recenzję
+                                    {userReview ? "Edytuj recenzję" : "Napisz recenzję"}
                                 </button>
                             </div>
                         </div>
@@ -836,15 +1075,68 @@ function MovieDetails() {
             {/* Sekcja recenzji */}
             <section className="max-w-7xl mx-auto px-6 pb-16">
                 <h2 className="text-2xl font-bold mb-4">
-                    Oceny i recenzje użytkowników
+                    Recenzje użytkowników
                 </h2>
-                <div className="bg-[#242426] border border-[#303034] rounded-xl p-6">
-                    <p className="text-gray-400">
-                        Tutaj pojawią się recenzje dodane przez użytkowników.
-                    </p>
-                    <p className="text-gray-500 text-sm mt-2">
-                        Funkcjonalność recenzji zostanie podłączona osobno.
-                    </p>
+
+                <div className="space-y-4">
+                    {[
+                        ...reviews.filter((item) => item.id !== userReview?.id),
+                        ...(userReview ? [userReview] : [])
+                    ]
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                        .map((item) => {
+                            const isOwnReview = userReview?.id === item.id;
+
+                            return (
+                                <article
+                                    key={item.id}
+                                    className="bg-[#242426] border border-[#303034] rounded-xl p-6"
+                                >
+                                    <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-3">
+                                        <div>
+                                            <h3 className="text-lg font-semibold">
+                                                {item.title}
+                                            </h3>
+                                            <p className="text-sm text-gray-400 mt-1">
+                                                {item.username || "Użytkownik"}
+                                                {item.createdAt
+                                                    ? ` • ${new Date(item.createdAt).toLocaleDateString("pl-PL")}`
+                                                    : ""}
+                                            </p>
+                                        </div>
+                                        <div className="flex items-center gap-3">
+                                            <span className={`text-xs px-3 py-1 rounded-full ${
+                                                item.visibility === "PRIVATE"
+                                                    ? "bg-[#414146] text-gray-300"
+                                                    : "bg-[#303034] text-gray-300"
+                                            }`}>
+                                                {item.visibility === "PRIVATE" ? "Prywatna" : "Publiczna"}
+                                            </span>
+                                            {isOwnReview && (
+                                                <button
+                                                    type="button"
+                                                    onClick={openReviewModal}
+                                                    className="text-[#cf6054] hover:text-[#e8796e] text-sm transition"
+                                                >
+                                                    Edytuj
+                                                </button>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <p className="text-gray-300 leading-relaxed whitespace-pre-wrap">
+                                        {item.content}
+                                    </p>
+                                </article>
+                            );
+                        })}
+
+                    {reviews.length === 0 && !userReview && (
+                        <div className="bg-[#242426] border border-[#303034] rounded-xl p-6">
+                            <p className="text-gray-400">
+                                Nie dodano jeszcze recenzji tej produkcji.
+                            </p>
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -1049,13 +1341,25 @@ function MovieDetails() {
 
             {/* Modal recenzji */}
             {activeModal === "review" && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-                    <div className="bg-[#242426] border border-[#303034] rounded-xl p-7 w-full max-w-lg">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6 overflow-y-auto">
+                    <div className="bg-[#242426] border border-[#303034] rounded-xl p-7 w-full max-w-lg my-auto">
                         <h2 className="text-2xl font-bold mb-5">
-                            Recenzja: {title}
+                            {userReview ? "Edytuj recenzję:" : "Napisz recenzję:"} {title}
                         </h2>
 
                         <form onSubmit={handleReviewSubmit}>
+                            <label className="block text-gray-300 mb-2">
+                                Tytuł recenzji
+                            </label>
+                            <input
+                                type="text"
+                                value={reviewTitle}
+                                onChange={(event) => setReviewTitle(event.target.value)}
+                                required
+                                placeholder="Np. Świetny serial"
+                                className="w-full bg-[#181818] border border-[#414146] rounded-lg p-3 text-white mb-5"
+                            />
+
                             <label className="block text-gray-300 mb-3">
                                 Treść recenzji
                             </label>
@@ -1063,24 +1367,59 @@ function MovieDetails() {
                                 value={review}
                                 onChange={(event) => setReview(event.target.value)}
                                 required
-                                minLength={10}
+                                minLength={1}
                                 rows={6}
                                 placeholder="Co sądzisz o tej produkcji?"
-                                className="w-full bg-[#181818] border border-[#414146] rounded-lg p-3 text-white resize-none mb-6"
+                                className="w-full bg-[#181818] border border-[#414146] rounded-lg p-3 text-white resize-none mb-5"
                             />
 
-                            <div className="flex gap-3">
+                            <label className="block text-gray-300 mb-2">
+                                Widoczność recenzji
+                            </label>
+                            <select
+                                value={reviewVisibility}
+                                onChange={(event) => setReviewVisibility(event.target.value)}
+                                className="w-full bg-[#181818] border border-[#414146] rounded-lg p-3 text-white mb-5"
+                            >
+                                <option value="PUBLIC">Publiczna</option>
+                                <option value="PRIVATE">Prywatna</option>
+                            </select>
+
+                            {reviewError && (
+                                <p className="text-red-400 text-sm mb-4">
+                                    {reviewError}
+                                </p>
+                            )}
+
+                            <div className="flex flex-col sm:flex-row gap-3">
                                 <button
                                     type="submit"
-                                    disabled={review.trim().length < 10}
-                                    className="flex-1 bg-[#cf6054] hover:bg-[#b94d43] disabled:opacity-50 rounded-lg py-3"
+                                    disabled={reviewSaving || !reviewTitle.trim() || !review.trim()}
+                                    className="flex-1 bg-[#cf6054] hover:bg-[#b94d43] disabled:opacity-50 rounded-lg py-3 font-medium transition"
                                 >
-                                    Opublikuj recenzję
+                                    {reviewSaving
+                                        ? "Zapisywanie..."
+                                        : userReview
+                                            ? "Zapisz zmiany"
+                                            : "Opublikuj recenzję"}
                                 </button>
+                                {userReview && (
+                                    <button
+                                        type="button"
+                                        onClick={handleReviewDelete}
+                                        disabled={reviewSaving}
+                                        className="bg-red-700 hover:bg-red-800 disabled:opacity-50 rounded-lg px-5 py-3 font-medium transition"
+                                    >
+                                        Usuń
+                                    </button>
+                                )}
                                 <button
                                     type="button"
-                                    onClick={() => setActiveModal(null)}
-                                    className="flex-1 bg-[#303034] hover:bg-[#414146] rounded-lg py-3"
+                                    onClick={() => {
+                                        setReviewError("");
+                                        setActiveModal(null);
+                                    }}
+                                    className="bg-[#303034] hover:bg-[#414146] rounded-lg px-5 py-3 transition"
                                 >
                                     Anuluj
                                 </button>
