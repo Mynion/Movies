@@ -1,5 +1,9 @@
+
+import { useEffect, useState } from "react";
 import { Link } from "react-router";
 import { IMAGE_URL } from "../services/tmdb";
+
+const API_URL = "http://localhost:8080/api";
 
 function MovieCard({ movie }) {
     const isSeries = movie.media_type === "tv";
@@ -20,6 +24,31 @@ function MovieCard({ movie }) {
         ? `${IMAGE_URL}${movie.poster_path || movie.posterPath}`
         : "https://placehold.co/200x300?text=Brak+plakatu";
 
+    const [ratingStats, setRatingStats] = useState(null);
+
+    useEffect(() => {
+        const fetchRatingStats = async () => {
+            try {
+                const mediaType = isSeries ? "TV_SERIES" : "MOVIE";
+
+                const response = await fetch(
+                    `${API_URL}/ratings/media/stats?tmdbId=${movie.id}&mediaType=${mediaType}`
+                );
+
+                if (!response.ok) {
+                    return;
+                }
+
+                const data = await response.json();
+                setRatingStats(data);
+            } catch (error) {
+                console.error("Nie udało się pobrać ocen:", error);
+            }
+        };
+
+        fetchRatingStats();
+    }, [movie.id, isSeries]);
+
     return (
         <div className="flex gap-5 rounded-xl bg-[#242426] p-4 border border-[#303034]">
 
@@ -38,7 +67,7 @@ function MovieCard({ movie }) {
                             {title || "Brak tytułu"}
                         </h2>
 
-                        <div className="flex gap-2 mt-2 text-xs text-gray-400">
+                        <div className="flex flex-wrap gap-2 mt-2 text-xs text-gray-400">
 
                             <span className="bg-[#303034] px-2 py-1 rounded">
                                 {isSeries ? "Serial" : "Film"}
@@ -51,6 +80,30 @@ function MovieCard({ movie }) {
                         </div>
                     </div>
 
+                </div>
+
+                {/* Ocena użytkowników */}
+                <div className="flex items-center gap-2 mt-3 text-sm">
+                    <span className="text-yellow-400">
+                        ★
+                    </span>
+
+                    {ratingStats && ratingStats.ratingsCount > 0 ? (
+                        <>
+                            <span className="text-white font-semibold">
+                                {Number(ratingStats.averageRating).toFixed(2)}/10
+                            </span>
+
+                            <span className="text-gray-400">
+                                ({ratingStats.ratingsCount}{" "}
+                                {ratingStats.ratingsCount === 1 ? "ocena" : "ocen"})
+                            </span>
+                        </>
+                    ) : (
+                        <span className="text-gray-400">
+                            Brak ocen użytkowników
+                        </span>
+                    )}
                 </div>
 
                 <p className="text-gray-400 text-sm mt-4 line-clamp-3">
