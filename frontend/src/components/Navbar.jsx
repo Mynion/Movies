@@ -1,9 +1,50 @@
-import { Link } from "react-router";
+
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router";
+
+const API_URL = "http://localhost:8080/api";
 
 function Navbar({ search, setSearch }) {
+    const [user, setUser] = useState(null);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        fetch(`${API_URL}/auth/me`, {
+            credentials: "include",
+        })
+            .then((response) => {
+                if (!response.ok) {
+                    setUser(null);
+                    return null;
+                }
+                return response.json();
+            })
+            .then((data) => {
+                if (data) {
+                    setUser(data);
+                }
+            })
+            .catch(() => setUser(null));
+    }, []);
+
+    const handleLogout = async () => {
+        try {
+            const response = await fetch(`${API_URL}/auth/logout`, {
+                method: "POST",
+                credentials: "include",
+            });
+
+            if (response.ok) {
+                setUser(null);
+                navigate("/login");
+            }
+        } catch (error) {
+            console.error("Błąd podczas wylogowywania:", error);
+        }
+    };
+
     return (
         <nav className="bg-[#242426] border-b border-[#303034]">
-
             <div className="max-w-6xl mx-auto px-6 py-3 flex flex-wrap items-center justify-between gap-4">
 
                 <h1 className="text-xl font-bold text-white">
@@ -12,12 +53,6 @@ function Navbar({ search, setSearch }) {
 
                 <div className="flex flex-wrap items-center gap-6 text-sm text-gray-300">
 
-                    {/*<a href="#" className="hover:text-white">Filmy</a>*/}
-                    {/*<a href="#" className="hover:text-white">Seriale</a>*/}
-                    {/*<a href="#" className="hover:text-white">Rankingi</a>*/}
-                    {/*<a href="#" className="hover:text-white">Listy</a>*/}
-                    {/*<a href="#" className="hover:text-white">Historia</a>*/}
-                    {/*<a href="#" className="hover:text-white">Konto</a>*/}
                     <div className="flex items-center gap-3">
 
                         <Link to="/" className="text-gray-300 hover:text-white text-sm">
@@ -32,17 +67,24 @@ function Navbar({ search, setSearch }) {
                             Rankingi
                         </Link>
 
-                        {/*<Link to="/history" className="text-gray-300 hover:text-white text-sm">*/}
-                        {/*    Historia*/}
-                        {/*</Link>*/}
+                        {user ? (
+                            <button
+                                onClick={handleLogout}
+                                className="text-gray-300 hover:text-white text-sm"
+                            >
+                                Wyloguj
+                            </button>
+                        ) : (
+                            <>
+                                <Link to="/login" className="text-gray-300 hover:text-white text-sm">
+                                    Zaloguj się
+                                </Link>
 
-                        <Link to="/login" className="text-gray-300 hover:text-white text-sm">
-                            Zaloguj się
-                        </Link>
-
-                        <Link to="/register" className="text-gray-300 hover:text-white text-sm">
-                            Rejestracja
-                        </Link>
+                                <Link to="/register" className="text-gray-300 hover:text-white text-sm">
+                                    Rejestracja
+                                </Link>
+                            </>
+                        )}
 
                     </div>
 
