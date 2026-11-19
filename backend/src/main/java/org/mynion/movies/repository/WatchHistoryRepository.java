@@ -12,7 +12,7 @@ public interface WatchHistoryRepository
 
     List<WatchHistory> findByUserIdOrderByWatchedAtDesc(Long userId);
 
-    List<WatchHistory> findByUserIdAndWatchedAtBetweenOrderByWatchedAtDesc(
+    List<WatchHistory> findByUserIdAndWatchedAtGreaterThanEqualAndWatchedAtLessThanOrderByWatchedAtDesc(
             Long userId,
             Instant start,
             Instant end

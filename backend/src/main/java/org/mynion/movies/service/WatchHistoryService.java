@@ -69,6 +69,7 @@ public class WatchHistoryService {
                 .toList();
     }
 
+
     @Transactional(readOnly = true)
     public List<WatchHistoryResponseDto> getUserHistoryByDateRange(
             Long userId,
@@ -82,13 +83,16 @@ public class WatchHistoryService {
         }
 
         return watchHistoryRepository
-                .findByUserIdAndWatchedAtBetweenOrderByWatchedAtDesc(
-                        userId, start, end
+                .findByUserIdAndWatchedAtGreaterThanEqualAndWatchedAtLessThanOrderByWatchedAtDesc(
+                        userId,
+                        start,
+                        end
                 )
                 .stream()
                 .map(watchHistoryMapper::toDto)
                 .toList();
     }
+
 
     @Transactional(readOnly = true)
     public WatchHistoryResponseDto getWatchHistory(
