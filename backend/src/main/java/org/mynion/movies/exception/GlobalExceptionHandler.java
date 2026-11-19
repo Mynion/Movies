@@ -201,4 +201,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ApiErrorDto(403, ex.getMessage()));
     }
+
+    @ExceptionHandler(MediaItemNotFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleMediaItemNotFound(
+            MediaItemNotFoundException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiErrorDto(404, ex.getMessage()));
+    }
 }

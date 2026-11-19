@@ -5,6 +5,7 @@ import jakarta.validation.constraints.Positive;
 import org.mynion.movies.dto.list.CreateMediaListRequestDto;
 import org.mynion.movies.dto.list.MediaListResponseDto;
 import org.mynion.movies.dto.list.UpdateMediaListRequestDto;
+import org.mynion.movies.dto.media.MediaItemReferenceDto;
 import org.mynion.movies.entity.User;
 import org.mynion.movies.exception.UserNotFoundException;
 import org.mynion.movies.repository.UserRepo;
@@ -98,4 +99,32 @@ public class MediaListController {
 
         return user.getId();
     }
+
+
+    @PostMapping("/{id}/items")
+    public MediaListResponseDto addMediaItem(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody MediaItemReferenceDto request,
+            Authentication authentication
+    ) {
+        return mediaListService.addMediaItem(
+                id,
+                request,
+                getCurrentUserId(authentication)
+        );
+    }
+
+    @DeleteMapping("/{id}/items")
+    public MediaListResponseDto removeMediaItem(
+            @PathVariable @Positive Long id,
+            @Valid @RequestBody MediaItemReferenceDto request,
+            Authentication authentication
+    ) {
+        return mediaListService.removeMediaItem(
+                id,
+                request,
+                getCurrentUserId(authentication)
+        );
+    }
+
 }
