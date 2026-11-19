@@ -1,0 +1,22 @@
+
+package org.mynion.movies.dto.watchhistory;
+
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+
+import java.time.Instant;
+import java.util.List;
+
+public record CreateWatchHistoryRequestDto(
+        Instant watchedAt,
+
+        @Min(0)
+        @Max(100)
+        Integer progress,
+
+        @NotEmpty
+        List<@Valid WatchHistoryMediaItemDto> mediaItems
+) {
+}
