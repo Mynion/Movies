@@ -1,7 +1,7 @@
 
 package org.mynion.movies.mapper;
 
-import org.mynion.movies.dto.watchhistory.WatchHistoryMediaItemDto;
+import org.mynion.movies.dto.media.MediaItemReferenceDto;
 import org.mynion.movies.dto.watchhistory.WatchHistoryResponseDto;
 import org.mynion.movies.entity.MediaItem;
 import org.mynion.movies.entity.WatchHistory;
@@ -23,8 +23,8 @@ public class WatchHistoryMapper {
         );
     }
 
-    private WatchHistoryMediaItemDto toMediaItemDto(MediaItem mediaItem) {
-        return new WatchHistoryMediaItemDto(
+    private MediaItemReferenceDto toMediaItemDto(MediaItem mediaItem) {
+        return new MediaItemReferenceDto(
                 getTmdbId(mediaItem),
                 mediaItem.getMediaType(),
                 mediaItem.getSeasonNumber(),

@@ -7,8 +7,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Generated;
 import org.hibernate.generator.EventType;
-import org.mynion.movies.converter.ReviewVisibilityConverter;
-import org.mynion.movies.enums.ReviewVisibility;
+import org.mynion.movies.converter.VisibilityConverter;
+import org.mynion.movies.enums.Visibility;
 
 import java.time.Instant;
 
@@ -30,9 +30,9 @@ public class Review {
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Convert(converter = ReviewVisibilityConverter.class)
+    @Convert(converter = VisibilityConverter.class)
     @Column(name = "visibility", nullable = false, length = 20)
-    private ReviewVisibility visibility = ReviewVisibility.PUBLIC;
+    private Visibility visibility = Visibility.PUBLIC;
 
     @Generated(event = EventType.INSERT)
     @Column(

@@ -5,6 +5,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
+import org.mynion.movies.dto.media.MediaItemReferenceDto;
 
 import java.time.Instant;
 import java.util.List;
@@ -17,6 +18,6 @@ public record CreateWatchHistoryRequestDto(
         Integer progress,
 
         @NotEmpty
-        List<@Valid WatchHistoryMediaItemDto> mediaItems
+        List<@Valid MediaItemReferenceDto> mediaItems
 ) {
 }
