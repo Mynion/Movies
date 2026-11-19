@@ -1,4 +1,3 @@
-
 package org.mynion.movies.service;
 
 import org.mynion.movies.dto.review.CreateReviewRequestDto;
@@ -8,7 +7,7 @@ import org.mynion.movies.entity.MediaItem;
 import org.mynion.movies.entity.Review;
 import org.mynion.movies.entity.User;
 import org.mynion.movies.enums.MediaType;
-import org.mynion.movies.enums.ReviewVisibility;
+import org.mynion.movies.enums.Visibility;
 import org.mynion.movies.exception.ReviewAccessDeniedException;
 import org.mynion.movies.exception.ReviewAlreadyExistsException;
 import org.mynion.movies.exception.ReviewNotFoundException;
@@ -80,7 +79,7 @@ public class ReviewService {
         Review review = reviewRepository.findById(reviewId)
                 .orElseThrow(ReviewNotFoundException::new);
 
-        if (review.getVisibility() == ReviewVisibility.PRIVATE
+        if (review.getVisibility() == Visibility.PRIVATE
                 && !review.getUser().getId().equals(userId)) {
             throw new ReviewNotFoundException();
         }
@@ -114,7 +113,7 @@ public class ReviewService {
                 .map(item -> reviewRepository
                         .findByMediaItemIdAndVisibility(
                                 item.getId(),
-                                ReviewVisibility.PUBLIC
+                                Visibility.PUBLIC
                         )
                         .stream()
                         .map(reviewMapper::toDto)

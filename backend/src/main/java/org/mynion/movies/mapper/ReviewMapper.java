@@ -1,4 +1,3 @@
-
 package org.mynion.movies.mapper;
 
 import org.mynion.movies.dto.review.ReviewResponseDto;

@@ -1,4 +1,3 @@
-
 package org.mynion.movies.dto.review;
 
 import jakarta.validation.constraints.NotBlank;
@@ -7,7 +6,7 @@ import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 import org.mynion.movies.enums.MediaType;
-import org.mynion.movies.enums.ReviewVisibility;
+import org.mynion.movies.enums.Visibility;
 
 public record CreateReviewRequestDto(
 
@@ -31,6 +30,6 @@ public record CreateReviewRequestDto(
         String content,
 
         @NotNull
-        ReviewVisibility visibility
+        Visibility visibility
 ) {
 }

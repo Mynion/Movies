@@ -1,4 +1,3 @@
-
 package org.mynion.movies.service;
 
 import org.mynion.movies.entity.MediaItem;

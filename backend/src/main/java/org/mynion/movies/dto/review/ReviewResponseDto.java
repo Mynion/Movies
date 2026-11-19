@@ -1,8 +1,7 @@
-
 package org.mynion.movies.dto.review;
 
 import org.mynion.movies.enums.MediaType;
-import org.mynion.movies.enums.ReviewVisibility;
+import org.mynion.movies.enums.Visibility;
 
 import java.time.Instant;
 
@@ -28,7 +27,7 @@ public record ReviewResponseDto(
 
         String content,
 
-        ReviewVisibility visibility,
+        Visibility visibility,
 
         Instant createdAt
 ) {

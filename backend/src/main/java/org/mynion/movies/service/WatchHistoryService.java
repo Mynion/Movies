@@ -1,6 +1,6 @@
-
 package org.mynion.movies.service;
 
+import org.mynion.movies.dto.media.MediaItemReferenceDto;
 import org.mynion.movies.dto.watchhistory.*;
 import org.mynion.movies.entity.MediaItem;
 import org.mynion.movies.entity.User;
@@ -136,11 +136,11 @@ public class WatchHistoryService {
     }
 
     private Set<MediaItem> resolveMediaItems(
-            List<WatchHistoryMediaItemDto> mediaItems
+            List<MediaItemReferenceDto> mediaItems
     ) {
         Set<MediaItem> result = new HashSet<>();
 
-        for (WatchHistoryMediaItemDto item : mediaItems) {
+        for (MediaItemReferenceDto item : mediaItems) {
             MediaItem mediaItem = mediaItemService.findOrCreate(
                     item.mediaType(),
                     item.tmdbId(),

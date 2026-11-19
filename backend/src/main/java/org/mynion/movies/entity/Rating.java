@@ -1,4 +1,3 @@
-
 package org.mynion.movies.entity;
 
 import jakarta.persistence.*;

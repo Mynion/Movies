@@ -1,8 +1,7 @@
-
 package org.mynion.movies.repository;
 
 import org.mynion.movies.entity.Review;
-import org.mynion.movies.enums.ReviewVisibility;
+import org.mynion.movies.enums.Visibility;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -13,10 +12,10 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
     List<Review> findByMediaItemIdAndVisibility(
             Long mediaItemId,
-            ReviewVisibility visibility
+            Visibility visibility
     );
 
-    List<Review> findByVisibility(ReviewVisibility visibility);
+    List<Review> findByVisibility(Visibility visibility);
     boolean existsByUserIdAndMediaItemId(
             Long userId,
             Long mediaItemId

@@ -1,4 +1,3 @@
-
 package org.mynion.movies.dto.rating;
 
 import jakarta.validation.Valid;
