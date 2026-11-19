@@ -1,4 +1,3 @@
-
 package org.mynion.movies.dto.media;
 
 import jakarta.validation.constraints.Min;

@@ -73,7 +73,8 @@ public class SecurityConfig {
     ) throws Exception {
 
         http
-                .cors(cors -> {})
+                .cors(cors -> {
+                })
                 .csrf(AbstractHttpConfigurer::disable)
                 .securityContext(context -> context
                         .securityContextRepository(securityContextRepository)
@@ -102,6 +103,9 @@ public class SecurityConfig {
                                 "/api/reviews/media",
                                 "/api/reviews/{id}"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/lists/me").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/lists/*")
+                        .permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception

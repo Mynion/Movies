@@ -1,4 +1,3 @@
-
 package org.mynion.movies.converter;
 
 import jakarta.persistence.AttributeConverter;

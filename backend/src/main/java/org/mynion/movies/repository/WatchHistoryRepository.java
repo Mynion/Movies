@@ -1,4 +1,3 @@
-
 package org.mynion.movies.repository;
 
 import org.mynion.movies.entity.WatchHistory;

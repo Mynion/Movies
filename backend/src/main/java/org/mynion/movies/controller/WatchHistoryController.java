@@ -1,4 +1,3 @@
-
 package org.mynion.movies.controller;
 
 import jakarta.validation.Valid;

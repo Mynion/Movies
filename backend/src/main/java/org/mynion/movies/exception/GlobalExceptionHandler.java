@@ -1,4 +1,3 @@
-
 package org.mynion.movies.exception;
 
 import jakarta.validation.ConstraintViolationException;
@@ -182,6 +181,22 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(WatchHistoryAccessDeniedException.class)
     public ResponseEntity<ApiErrorDto> handleWatchHistoryAccessDenied(
             WatchHistoryAccessDeniedException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiErrorDto(403, ex.getMessage()));
+    }
+
+    @ExceptionHandler(MediaListNotFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleMediaListNotFound(
+            MediaListNotFoundException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiErrorDto(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(MediaListAccessDeniedException.class)
+    public ResponseEntity<ApiErrorDto> handleMediaListAccessDenied(
+            MediaListAccessDeniedException ex
     ) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ApiErrorDto(403, ex.getMessage()));

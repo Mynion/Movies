@@ -1,4 +1,3 @@
-
 package org.mynion.movies.enums;
 
 public enum ScoreType {

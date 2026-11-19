@@ -1,4 +1,3 @@
-
 package org.mynion.movies.dto.watchhistory;
 
 import org.mynion.movies.dto.media.MediaItemReferenceDto;

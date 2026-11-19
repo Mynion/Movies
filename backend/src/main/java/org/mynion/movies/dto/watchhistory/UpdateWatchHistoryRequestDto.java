@@ -1,4 +1,3 @@
-
 package org.mynion.movies.dto.watchhistory;
 
 import jakarta.validation.Valid;

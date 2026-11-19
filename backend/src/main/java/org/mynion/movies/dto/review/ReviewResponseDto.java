@@ -1,4 +1,3 @@
-
 package org.mynion.movies.dto.review;
 
 import org.mynion.movies.enums.MediaType;
