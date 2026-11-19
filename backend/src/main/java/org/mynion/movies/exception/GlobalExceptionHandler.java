@@ -170,4 +170,20 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ApiErrorDto(404, ex.getMessage()));
     }
+
+    @ExceptionHandler(WatchHistoryNotFoundException.class)
+    public ResponseEntity<ApiErrorDto> handleWatchHistoryNotFound(
+            WatchHistoryNotFoundException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ApiErrorDto(404, ex.getMessage()));
+    }
+
+    @ExceptionHandler(WatchHistoryAccessDeniedException.class)
+    public ResponseEntity<ApiErrorDto> handleWatchHistoryAccessDenied(
+            WatchHistoryAccessDeniedException ex
+    ) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiErrorDto(403, ex.getMessage()));
+    }
 }
