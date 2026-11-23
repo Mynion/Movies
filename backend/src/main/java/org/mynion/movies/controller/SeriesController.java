@@ -58,4 +58,14 @@ public class SeriesController {
     ) {
         return tmdbService.getSeriesRecommendations(id, page);
     }
+
+
+    @GetMapping("/{id}/similar")
+    public SeriesSearchResponseDto getSimilarSeries(
+            @PathVariable @Positive Long id,
+            @RequestParam(defaultValue = "1") @Min(1) int page
+    ) {
+        return tmdbService.getSimilarSeries(id, page);
+    }
+
 }

@@ -45,4 +45,14 @@ public class MovieController {
     ) {
         return tmdbService.getMovieRecommendations(id, page);
     }
+
+
+    @GetMapping("/{id}/similar")
+    public MovieSearchResponseDto getSimilarMovies(
+            @PathVariable @Positive Long id,
+            @RequestParam(defaultValue = "1") @Min(1) int page
+    ) {
+        return tmdbService.getSimilarMovies(id, page);
+    }
+
 }
