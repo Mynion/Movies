@@ -165,4 +165,26 @@ public class TmdbService {
                 .retrieve()
                 .body(EpisodeDto.class);
     }
+
+    public MovieSearchResponseDto getMovieRecommendations(Long movieId, int page) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/movie/{movie_id}/recommendations")
+                        .queryParam("language", "pl-PL")
+                        .queryParam("page", page)
+                        .build(movieId))
+                .retrieve()
+                .body(MovieSearchResponseDto.class);
+    }
+
+    public SeriesSearchResponseDto getSeriesRecommendations(Long seriesId, int page) {
+        return tmdbRestClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/tv/{series_id}/recommendations")
+                        .queryParam("language", "pl-PL")
+                        .queryParam("page", page)
+                        .build(seriesId))
+                .retrieve()
+                .body(SeriesSearchResponseDto.class);
+    }
 }

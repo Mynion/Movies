@@ -50,4 +50,12 @@ public class SeriesController {
     ) {
         return tmdbService.getEpisodeDetails(id, seasonNumber, episodeNumber);
     }
+
+    @GetMapping("/{id}/recommendations")
+    public SeriesSearchResponseDto getSeriesRecommendations(
+            @PathVariable @Positive Long id,
+            @RequestParam(defaultValue = "1") @Min(1) int page
+    ) {
+        return tmdbService.getSeriesRecommendations(id, page);
+    }
 }
