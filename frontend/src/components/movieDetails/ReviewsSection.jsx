@@ -1,6 +1,7 @@
 
 function ReviewsSection({ reviews, userReview, openReviewModal }) {
     return (
+        <>
             {/* Sekcja recenzji */}
             <section className="max-w-7xl mx-auto px-6 pb-16">
                 <h2 className="text-2xl font-bold mb-4">
@@ -68,7 +69,7 @@ function ReviewsSection({ reviews, userReview, openReviewModal }) {
                     )}
                 </div>
             </section>
-
+        </>
     );
 }
 

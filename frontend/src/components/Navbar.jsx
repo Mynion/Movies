@@ -73,6 +73,24 @@ function Navbar({ search, setSearch }) {
                             </Link>
                         )}
 
+                        {user && (
+                            <>
+                                <Link
+                                    to="/lists"
+                                    className="text-gray-300 hover:text-white text-sm"
+                                >
+                                    Moje listy
+                                </Link>
+
+                                <Link
+                                    to="/history"
+                                    className="text-gray-300 hover:text-white text-sm"
+                                >
+                                    Historia
+                                </Link>
+                            </>
+                        )}
+
                         {user ? (
                             <button
                                 onClick={handleLogout}

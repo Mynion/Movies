@@ -65,6 +65,12 @@ function MovieDetails() {
     const [selectedListId, setSelectedListId] = useState("");
     const [listError, setListError] = useState("");
     const [addingToList, setAddingToList] = useState(false);
+    const [showWatchModal, setShowWatchModal] = useState(false);
+    const [watchedDate, setWatchedDate] = useState(
+        new Date().toLocaleDateString("en-CA")
+    );
+    const [watchSaving, setWatchSaving] = useState(false);
+    const [watchError, setWatchError] = useState("");
 
     const [expandedSeason, setExpandedSeason] = useState(null);
 
@@ -830,6 +836,75 @@ function MovieDetails() {
         }
     }
 
+    async function handleMarkAsWatched(event) {
+        event.preventDefault();
+        setWatchError("");
+
+        if (!watchedDate) {
+            setWatchError("Wybierz datę obejrzenia.");
+            return;
+        }
+
+        const mediaItem = {
+            tmdbId: Number(id),
+            mediaType,
+        };
+
+        if (isEpisode) {
+            mediaItem.seasonNumber = Number(seasonNumber);
+            mediaItem.episodeNumber = Number(episodeNumber);
+        }
+
+        // Ustawiamy południe lokalnego dnia, żeby uniknąć
+        // przesunięcia daty przy konwersji do UTC.
+        const watchedAt = new Date(
+            `${watchedDate}T12:00:00`
+        ).toISOString();
+
+        try {
+            setWatchSaving(true);
+
+            const response = await fetch(`${API_URL}/watch-history`, {
+                method: "POST",
+                credentials: "include",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    watchedAt,
+                    progress: 100,
+                    mediaItems: [mediaItem],
+                }),
+            });
+
+            if (response.status === 401) {
+                navigate("/login", {
+                    state: { from: location.pathname },
+                });
+                return;
+            }
+
+            if (!response.ok) {
+                const errorText = await response.text();
+
+                console.error("Błąd zapisu historii:", {
+                    status: response.status,
+                    response: errorText,
+                });
+
+                throw new Error(
+                    errorText || `Błąd serwera: ${response.status}`
+                );
+            }
+
+            setShowWatchModal(false);
+        } catch (err) {
+            setWatchError(err.message || "Wystąpił błąd.");
+        } finally {
+            setWatchSaving(false);
+        }
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#181818] text-white">
@@ -894,12 +969,13 @@ function MovieDetails() {
         <div className="min-h-screen bg-[#181818] text-white">
             <Navbar />
 
-            <MovieHeader backdrop={backdrop} isEpisode={isEpisode} id={id} poster={poster} title={title} productionType={productionType} year={year} seasonNumber={seasonNumber} episodeNumber={episodeNumber} details={details} isSeries={isSeries} runtime={runtime} voteAverage={voteAverage} userRating={userRating} requireLogin={requireLogin} openReviewModal={openReviewModal} user={user} userReview={userReview} openAddToListModal={openAddToListModal} />
-            <UserRatingStats ratingStats={ratingStats} userRating={userRating} />
+            <MovieHeader backdrop={backdrop} isEpisode={isEpisode} id={id} poster={poster} title={title} productionType={productionType} year={year} seasonNumber={seasonNumber} episodeNumber={episodeNumber} details={details} isSeries={isSeries} runtime={runtime} voteAverage={voteAverage} userRating={userRating} requireLogin={requireLogin} openReviewModal={openReviewModal} user={user} userReview={userReview} openAddToListModal={openAddToListModal} openWatchModal={() => {setWatchError("");setShowWatchModal(true);}}/>            <UserRatingStats ratingStats={ratingStats} userRating={userRating} />
             <SeasonsSection isSeries={isSeries} seasons={seasons} expandedSeason={expandedSeason} setExpandedSeason={setExpandedSeason} id={id} IMAGE_URL={IMAGE_URL} />
             <CastSection isEpisode={isEpisode} cast={cast} IMAGE_URL={IMAGE_URL} />
             <ReviewsSection reviews={reviews} userReview={userReview} openReviewModal={openReviewModal} />
             <RelatedProductions isEpisode={isEpisode} recommendations={recommendations} similarProductions={similarProductions} isSeries={isSeries} IMAGE_URL={IMAGE_URL} />
+
+
             {/* Modal oceny */}
             {activeModal === "rating" && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-6 overflow-y-auto">
@@ -1179,6 +1255,58 @@ function MovieDetails() {
                                         setReviewError("");
                                         setActiveModal(null);
                                     }}
+                                    className="bg-[#303034] hover:bg-[#414146] rounded-lg px-5 py-3 transition"
+                                >
+                                    Anuluj
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {showWatchModal && (
+                <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+                    <div className="bg-[#242426] border border-[#303034] rounded-xl p-6 w-full max-w-md">
+                        <h2 className="text-xl font-bold mb-2">
+                            Oznacz jako obejrzane
+                        </h2>
+
+                        <p className="text-gray-400 text-sm mb-5">
+                            Wybierz dzień, w którym obejrzałeś tę produkcję.
+                        </p>
+
+                        <form onSubmit={handleMarkAsWatched}>
+                            <label className="block text-gray-300 text-sm mb-2">
+                                Data obejrzenia
+                            </label>
+
+                            <input
+                                type="date"
+                                value={watchedDate}
+                                onChange={(event) => setWatchedDate(event.target.value)}
+                                required
+                                className="w-full bg-[#181818] border border-[#414146] rounded-lg p-3 text-white mb-5"
+                            />
+
+                            {watchError && (
+                                <p className="text-red-400 text-sm mb-4">
+                                    {watchError}
+                                </p>
+                            )}
+
+                            <div className="flex gap-3">
+                                <button
+                                    type="submit"
+                                    disabled={watchSaving}
+                                    className="flex-1 bg-[#cf6054] hover:bg-[#b94d43] disabled:opacity-50 rounded-lg py-3 font-medium transition"
+                                >
+                                    {watchSaving ? "Zapisywanie..." : "Zapisz"}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setShowWatchModal(false)}
                                     className="bg-[#303034] hover:bg-[#414146] rounded-lg px-5 py-3 transition"
                                 >
                                     Anuluj

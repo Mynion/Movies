@@ -1,6 +1,7 @@
 
 function UserRatingStats({ ratingStats, userRating }) {
     return (
+        <>
             {/* Oceny użytkowników */}
             <section className="max-w-7xl mx-auto px-6 pt-4">
                 <div className="bg-[#242426] border border-[#303034] rounded-xl p-6">
@@ -34,7 +35,7 @@ function UserRatingStats({ ratingStats, userRating }) {
                     </div>
                 </div>
             </section>
-
+        </>
     );
 }
 

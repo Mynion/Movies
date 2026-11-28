@@ -1,7 +1,30 @@
+
 import { Link } from "react-router";
 
-function MovieHeader({ backdrop, isEpisode, id, poster, title, productionType, year, seasonNumber, episodeNumber, details, isSeries, runtime, voteAverage, userRating, requireLogin, openReviewModal, user, userReview, openAddToListModal }) {
+function MovieHeader({
+                         backdrop,
+                         isEpisode,
+                         id,
+                         poster,
+                         title,
+                         productionType,
+                         year,
+                         seasonNumber,
+                         episodeNumber,
+                         details,
+                         isSeries,
+                         runtime,
+                         voteAverage,
+                         userRating,
+                         requireLogin,
+                         openReviewModal,
+                         user,
+                         userReview,
+                         openAddToListModal,
+                         openWatchModal
+                     }) {
     return (
+        <>
             {/* Tło produkcji */}
             <div className="relative">
                 {backdrop && (
@@ -149,6 +172,15 @@ function MovieHeader({ backdrop, isEpisode, id, poster, title, productionType, y
                                     {userReview ? "Edytuj recenzję" : "Napisz recenzję"}
                                 </button>
 
+                                {user && (
+                                    <button
+                                        onClick={openWatchModal}
+                                        className="bg-[#303034] hover:bg-[#414146] border border-[#414146] px-5 py-3 rounded-lg font-medium transition"
+                                    >
+                                        Oznacz jako obejrzane
+                                    </button>
+                                )}
+
                                 <button
                                     onClick={openAddToListModal}
                                     className="bg-[#303034] hover:bg-[#414146] px-5 py-3 rounded-lg font-medium transition"
@@ -160,7 +192,7 @@ function MovieHeader({ backdrop, isEpisode, id, poster, title, productionType, y
                     </div>
                 </div>
             </div>
-
+        </>
     );
 }
 
