@@ -52,6 +52,13 @@ function MovieDetails() {
     const [userReview, setUserReview] = useState(null);
     const [reviewSaving, setReviewSaving] = useState(false);
     const [reviewError, setReviewError] = useState("");
+    const [recommendations, setRecommendations] = useState([]);
+    const [similarProductions, setSimilarProductions] = useState([]);
+    const [userLists, setUserLists] = useState([]);
+    const [showListModal, setShowListModal] = useState(false);
+    const [selectedListId, setSelectedListId] = useState("");
+    const [listError, setListError] = useState("");
+    const [addingToList, setAddingToList] = useState(false);
 
     const [expandedSeason, setExpandedSeason] = useState(null);
 
@@ -257,6 +264,63 @@ function MovieDetails() {
             cancelled = true;
         };
     }, [id, mediaType, isEpisode, seasonNumber, episodeNumber, user]);
+
+    // Pobieranie rekomendacji i podobnych produkcji z backendu.
+    useEffect(() => {
+        if (isEpisode) {
+            setRecommendations([]);
+            setSimilarProductions([]);
+            return;
+        }
+
+        let cancelled = false;
+        const endpoint = isSeries ? "series" : "movies";
+
+        async function loadRelatedProductions() {
+            try {
+                const [recommendationsResponse, similarResponse] = await Promise.all([
+                    fetch(`${API_URL}/${endpoint}/${id}/recommendations?page=1`),
+                    fetch(`${API_URL}/${endpoint}/${id}/similar?page=1`)
+                ]);
+
+                if (!recommendationsResponse.ok || !similarResponse.ok) {
+                    throw new Error("Nie udało się pobrać rekomendowanych produkcji.");
+                }
+
+                const [recommendationsData, similarData] = await Promise.all([
+                    recommendationsResponse.json(),
+                    similarResponse.json()
+                ]);
+
+                if (!cancelled) {
+                    setRecommendations(
+                        Array.isArray(recommendationsData.results)
+                            ? recommendationsData.results
+                            : []
+                    );
+                    setSimilarProductions(
+                        Array.isArray(similarData.results)
+                            ? similarData.results
+                            : []
+                    );
+                }
+            } catch (err) {
+                if (!cancelled) {
+                    console.error("Nie udało się pobrać rekomendacji:", err);
+                    setRecommendations([]);
+                    setSimilarProductions([]);
+                }
+            }
+        }
+
+        setRecommendations([]);
+        setSimilarProductions([]);
+        loadRelatedProductions();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [id, isSeries, isEpisode]);
 
     function requireLogin(modalType) {
         if (!user) {
@@ -659,6 +723,107 @@ function MovieDetails() {
         }
     }
 
+    async function openAddToListModal() {
+        if (!user) {
+            navigate("/login", {
+                state: { from: location.pathname }
+            });
+            return;
+        }
+
+        try {
+            setListError("");
+
+            const response = await fetch(`${API_URL}/lists/me`, {
+                credentials: "include"
+            });
+
+            if (response.status === 401) {
+                navigate("/login", {
+                    state: { from: location.pathname }
+                });
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error("Nie udało się pobrać Twoich list.");
+            }
+
+            const data = await response.json();
+            setUserLists(Array.isArray(data) ? data : []);
+            setSelectedListId(data.length > 0 ? String(data[0].id) : "");
+            setShowListModal(true);
+        } catch (err) {
+            setListError(err.message || "Wystąpił błąd.");
+        }
+    }
+    async function handleAddToList() {
+        if (!selectedListId) {
+            setListError("Najpierw utwórz listę.");
+            return;
+        }
+
+        const body = {
+            tmdbId: Number(id),
+            mediaType
+        };
+
+        if (isEpisode) {
+            body.seasonNumber = Number(seasonNumber);
+            body.episodeNumber = Number(episodeNumber);
+        }
+
+        try {
+            setAddingToList(true);
+            setListError("");
+
+            const response = await fetch(
+                `${API_URL}/lists/${selectedListId}/items`,
+                {
+                    method: "POST",
+                    credentials: "include",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body)
+                }
+            );
+
+            if (response.status === 401) {
+                navigate("/login", {
+                    state: { from: location.pathname }
+                });
+                return;
+            }
+
+            if (!response.ok) {
+                let message = "Nie udało się dodać produkcji do listy.";
+
+                try {
+                    const errorData = await response.json();
+                    message = errorData.message || errorData.error || message;
+                } catch {
+                    // Odpowiedź nie zawiera JSON.
+                }
+
+                throw new Error(message);
+            }
+
+            // API zwraca zaktualizowaną listę.
+            const updatedList = await response.json();
+
+            setUserLists((current) =>
+                current.map((list) =>
+                    list.id === updatedList.id ? updatedList : list
+                )
+            );
+
+            setShowListModal(false);
+        } catch (err) {
+            setListError(err.message || "Wystąpił błąd.");
+        } finally {
+            setAddingToList(false);
+        }
+    }
+
     if (loading) {
         return (
             <div className="min-h-screen bg-[#181818] text-white">
@@ -823,6 +988,13 @@ function MovieDetails() {
                                     <span>Czas trwania: {runtime} min</span>
                                 )}
 
+                                <span>
+                                    Ocena TMDB:{" "}
+                                    {voteAverage != null
+                                        ? Number(voteAverage).toFixed(1)
+                                        : "—"}
+                                    /10
+                                </span>
                             </div>
 
                             <h2 className="text-xl font-semibold mb-3">Opis</h2>
@@ -861,6 +1033,13 @@ function MovieDetails() {
                                     className="bg-[#303034] hover:bg-[#414146] px-5 py-3 rounded-lg font-medium transition"
                                 >
                                     {userReview ? "Edytuj recenzję" : "Napisz recenzję"}
+                                </button>
+
+                                <button
+                                    onClick={openAddToListModal}
+                                    className="bg-[#303034] hover:bg-[#414146] px-5 py-3 rounded-lg font-medium transition"
+                                >
+                                    + Dodaj do listy
                                 </button>
                             </div>
                         </div>
@@ -1139,6 +1318,89 @@ function MovieDetails() {
                     )}
                 </div>
             </section>
+
+            {/* Rekomendacje i podobne produkcje */}
+            {!isEpisode && (
+                <section className="max-w-7xl mx-auto px-6 pb-16 space-y-12">
+                    {recommendations.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold mb-6">
+                                Może Ci się spodobać
+                            </h2>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                                {recommendations.slice(0, 12).map((item) => {
+                                    const itemTitle = isSeries
+                                        ? item.name || item.title
+                                        : item.title || item.name;
+                                    const itemPoster = item.poster_path
+                                        ? `${IMAGE_URL}w342${item.poster_path}`
+                                        : "https://placehold.co/200x300?text=Brak+plakatu";
+
+                                    return (
+                                        <Link
+                                            key={item.id}
+                                            to={`/movie/${isSeries ? "tv" : "movie"}/${item.id}`}
+                                            className="group bg-[#242426] border border-[#303034] rounded-xl overflow-hidden hover:border-[#cf6054] transition"
+                                        >
+                                            <img
+                                                src={itemPoster}
+                                                alt={itemTitle || "Plakat produkcji"}
+                                                className="w-full aspect-[2/3] object-cover"
+                                                loading="lazy"
+                                            />
+                                            <div className="p-3">
+                                                <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:text-[#e8796e] transition">
+                                                    {itemTitle || "Brak tytułu"}
+                                                </h3>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {similarProductions.length > 0 && (
+                        <div>
+                            <h2 className="text-2xl font-bold mb-6">
+                                Podobne produkcje
+                            </h2>
+
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-5">
+                                {similarProductions.slice(0, 12).map((item) => {
+                                    const itemTitle = isSeries
+                                        ? item.name || item.title
+                                        : item.title || item.name;
+                                    const itemPoster = item.poster_path
+                                        ? `${IMAGE_URL}w342${item.poster_path}`
+                                        : "https://placehold.co/200x300?text=Brak+plakatu";
+
+                                    return (
+                                        <Link
+                                            key={item.id}
+                                            to={`/movie/${isSeries ? "tv" : "movie"}/${item.id}`}
+                                            className="group bg-[#242426] border border-[#303034] rounded-xl overflow-hidden hover:border-[#cf6054] transition"
+                                        >
+                                            <img
+                                                src={itemPoster}
+                                                alt={itemTitle || "Plakat produkcji"}
+                                                className="w-full aspect-[2/3] object-cover"
+                                                loading="lazy"
+                                            />
+                                            <div className="p-3">
+                                                <h3 className="text-sm font-semibold text-white line-clamp-2 group-hover:text-[#e8796e] transition">
+                                                    {itemTitle || "Brak tytułu"}
+                                                </h3>
+                                            </div>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+                </section>
+            )}
 
             {/* Modal oceny */}
             {activeModal === "rating" && (
@@ -1425,6 +1687,72 @@ function MovieDetails() {
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </div>
+            )}
+
+            {showListModal && (
+                <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+                    <div className="bg-[#242426] border border-[#414146] rounded-xl p-6 w-full max-w-md">
+                        <h2 className="text-2xl font-bold mb-5">
+                            Dodaj do listy
+                        </h2>
+
+                        {userLists.length > 0 ? (
+                            <>
+                                <label className="block text-sm text-gray-300 mb-2">
+                                    Wybierz listę
+                                </label>
+
+                                <select
+                                    value={selectedListId}
+                                    onChange={(event) =>
+                                        setSelectedListId(event.target.value)
+                                    }
+                                    className="w-full bg-[#181818] border border-[#414146] rounded-lg px-4 py-3 mb-4"
+                                >
+                                    {userLists.map((list) => (
+                                        <option key={list.id} value={list.id}>
+                                            {list.name}
+                                        </option>
+                                    ))}
+                                </select>
+
+                                <button
+                                    onClick={handleAddToList}
+                                    disabled={addingToList}
+                                    className="w-full bg-[#cf6054] hover:bg-[#b94d43] disabled:opacity-50 px-5 py-3 rounded-lg font-medium transition"
+                                >
+                                    {addingToList ? "Dodawanie..." : "Dodaj"}
+                                </button>
+                            </>
+                        ) : (
+                            <p className="text-gray-400 mb-5">
+                                Nie masz jeszcze żadnych list. Utwórz pierwszą listę na stronie „Moje listy”.
+                            </p>
+                        )}
+
+                        {listError && (
+                            <p className="text-red-400 text-sm mt-4">
+                                {listError}
+                            </p>
+                        )}
+
+                        <div className="flex justify-between items-center mt-5">
+                            <Link
+                                to="/lists"
+                                className="text-[#cf6054] hover:text-[#e8796e] transition"
+                            >
+                                Przejdź do moich list
+                            </Link>
+
+                            <button
+                                onClick={() => setShowListModal(false)}
+                                className="bg-[#303034] hover:bg-[#414146] px-4 py-2 rounded-lg transition"
+                            >
+                                Zamknij
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
