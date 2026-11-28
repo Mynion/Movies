@@ -1,9 +1,11 @@
+
 import { BrowserRouter, Routes, Route } from "react-router";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import MovieDetails from "./pages/MovieDetails";
+import Lists from "./pages/Lists";
 
 function App() {
     return (
@@ -12,6 +14,8 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+
+                <Route path="/lists" element={<Lists />} />
 
                 <Route path="/movie/:type/:id" element={<MovieDetails />} />
 
