@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 function RelatedProductions({ isEpisode, recommendations, similarProductions, isSeries, IMAGE_URL }) {
     return (
+        <>
             {/* Rekomendacje i podobne produkcje */}
             {!isEpisode && (
                 <section className="max-w-7xl mx-auto px-6 pb-16 space-y-12">
@@ -84,7 +85,7 @@ function RelatedProductions({ isEpisode, recommendations, similarProductions, is
                     )}
                 </section>
             )}
-
+        </>
     );
 }
 

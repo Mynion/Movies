@@ -2,6 +2,7 @@ import { Link } from "react-router";
 
 function SeasonsSection({ isSeries, seasons, expandedSeason, setExpandedSeason, id, IMAGE_URL }) {
     return (
+        <>
             {/* Sezony i odcinki serialu */}
             {isSeries && (
                 <section className="max-w-7xl mx-auto px-6 py-12">
@@ -133,7 +134,7 @@ function SeasonsSection({ isSeries, seasons, expandedSeason, setExpandedSeason, 
                     )}
                 </section>
             )}
-
+        </>
     );
 }
 
